@@ -1,1 +1,4 @@
-// Export hooks here
+export {
+  type UsePersistedCountOptions,
+  usePersistedCount,
+} from "./usePersistedCount";

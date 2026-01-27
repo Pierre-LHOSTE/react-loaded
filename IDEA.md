@@ -1,155 +1,149 @@
-# SmartSkeleton
+# Loaded
 
 > Résumé
-Une librairie React qui affiche des skeletons intelligents basés sur les vrais composants, avec persistance automatique du nombre d’éléments pour les listes afin d’éviter tout jump visuel.
+Une librairie React qui affiche des skeletons basés sur les vrais composants en masquant leur contenu via CSS, avec gestion optionnelle des listes et persistance du nombre d’éléments pour éviter les jumps visuels.
 >
 
 ## 1. Pourquoi ce projet existe
 
 - Problème ou besoin initial:
-  - Les skeletons actuels sont soit génériques, soit recréés manuellement.
-  - Les listes ont souvent un nombre d’éléments inconnu à l’avance, ce qui provoque des jumps visuels.
-  - Les solutions existantes ne synchronisent pas le skeleton avec le rendu réel final.
+  - Les skeletons génériques ne respectent pas la vraie structure visuelle du composant.
+  - Les listes affichent souvent un nombre arbitraire de skeletons (ex: 3) sans lien avec le rendu réel.
+  - Lorsqu’une liste charge 20, 42 ou 100 items, le skeleton ne reflète pas ce nombre, ce qui crée du jump au moment où la data arrive.
+  - Beaucoup de projets recréent des skeletons à la main pour chaque composant, ce qui est répétitif et fragile.
 
 - Pourquoi ça mérite d’exister maintenant:
-  - Les apps React modernes misent fortement sur l’UX perçue.
-  - Le CLS (layout shift) est devenu un vrai problème visible.
-  - Les data-fetchers (SWR, react-query) n’adressent pas le rendu visuel.
+  - Les libs de data (React Query, SWR…) ont amélioré le fetch, mais pas la continuité visuelle entre “loading” et “loaded”.
+  - Les UIs modernes affichent de plus en plus de listes paginées, filtrées ou dynamiques.
+  - Les devs cherchent des skeletons plus réalistes sans devoir refaire chaque composant en version skeleton.
+  - Le skeleton doit anticiper le rendu final plutôt que bloquer visuellement avec 3 blocs gris.
 
 ## 2. Objectif & fin claire
 
 - Objectif concret recherché:
-  - Fournir un skeleton qui garde exactement le layout final du composant.
-  - Synchroniser automatiquement le nombre de skeletons avec les données réelles pour les listes.
+  - Afficher un skeleton qui conserve la vraie forme du composant via masking CSS.
+  - Pour les listes, aligner le nombre de skeletons sur le nombre réel d’éléments.
+  - Supprimer les jumps visuels au moment où la data arrive.
 
 - Le projet est considéré comme terminé quand:
-  - Un composant `SmartSkeleton` unique existe.
-  - Il supporte un mode simple et un mode liste.
-  - Le nombre d’items d’une liste est persisté automatiquement via `localStorage`.
-  - Aucun DOM read ni auto-measure n’est utilisé.
+  - Un composant SmartSkeleton permet de skeletonner un seul composant.
+  - Un composant SmartSkeletonList gère les listes et la persistance du nombre d’items.
+  - La lib fonctionne sans mesurer le DOM et sans recréer de skeletons manuellement.
+  - L’implémentation est stable avec des UI kits et des composants maison.
 
 ## 3. Périmètre
 
 Ce que le projet fait volontairement, et ce qu’il ne fera pas.
 
 - Inclus:
-  - Skeleton par masquage CSS du composant réel.
-  - Répétition automatique pour les listes.
-  - Persistance automatique du count.
-  - Warning dev pour mauvaises pratiques.
+  - Skeleton basé sur le composant réel (masking CSS).
+  - Support des composants simples et des listes.
+  - Persistance du nombre d’éléments via localStorage si storageKey est fourni.
+  - Warning dev si l’usage est incomplet (ex: liste sans storageKey).
+  - API explicite, non-magique.
 
 - Exclu:
   - Fetch de données.
-  - Gestion du loading state.
-  - Mesure du DOM ou analyse du layout.
-  - Couplage à un UI kit ou data-fetcher.
+  - Gestion du loading state (fourni par le dev).
+  - Lecture ou mesure de layout depuis le DOM.
+  - Couplage à React Query / SWR / MUI / AntD.
+  - Auto-détection du skeleton ou génération heuristique.
 
 ## 4. Idée centrale
 
 Le cœur de l’idée, sans parler d’implémentation.
 
 - Principe clé:
-  - Le skeleton n’est pas une imitation, c’est le composant réel rendu vide et masqué.
+  - Le skeleton n’est pas une imitation : c’est le composant réel rendu vide via CSS.
 
 - Logique générale / règles importantes:
-  - Même composant = même layout avant et après chargement.
-  - Pour les listes, le nombre de skeletons doit refléter le dernier rendu réel connu.
-  - La persistance est implicite mais contrôlée par le dev via une clé.
+  - Aucun élément visuel ajouté, aucun placeholder text inventé.
+  - Le layout ne change pas entre skeleton et rendu final.
+  - Pour les listes, le nombre de skeletons reflète le dernier items.length connu.
+  - storageKey active la persistance du nombre, sinon fallback local simple.
 
 - Cible ou usage principal:
-  - Applications React avec composants complexes et listes dynamiques.
+  - Projets React affichant des listes dynamiques (catalogues, dashboards, timelines, etc.)
+  - Composants avec structure complexe ou variable.
 
 ## 5. Fonctionnement réel
 
 Comment ça se passe concrètement.
 
 - Entrées:
-  - `loading: boolean`
-  - `element: ReactElement` (composant de référence avec données vides)
-  - `items?: any[]` (mode liste uniquement)
-  - `storageKey?: string`
-  - `defaultCount?: number`
+  - loading: boolean
+  - element: ReactElement (version vide du composant)
+  - items?: any[] (mode liste)
+  - storageKey?: string
+  - defaultCount?: number
 
 - Transformation:
-  - Application d’un mode CSS skeleton sur tout le subtree.
+  - Application d’un “skeleton mode” via CSS sur le subtree.
   - En mode liste:
-    - lecture de `localStorage[storageKey]` si présent
-    - fallback sur `defaultCount`
-    - quand `loading === false`, écriture automatique de `items.length` en storage
+    - lecture du stockage persistant si storageKey fourni
+    - fallback sur defaultCount sinon
+    - quand loading === false, écriture de items.length en storage
 
 - Sorties:
-  - Un rendu skeleton visuellement identique au layout final.
-  - Un rendu réel sans changement de taille ni structure.
+  - Avant data: skeleton identique en structure
+  - Après data: rendu final sans jump ni reflow
 
 - Exemple simple d’usage:
-  - Une page catalogue affiche 42 produits.
-  - La première visite montre 3 skeletons.
-  - Le nombre 42 est sauvegardé.
-  - La visite suivante affiche directement 42 skeletons.
+  - Liste de 42 produits
+  - Première visite: skeleton x 3
+  - Data arrive: rendu x 42 → persistence
+  - Visite suivante: skeleton x 42
 
 ## 6. Contenu attendu (MVP)
 
 Le minimum nécessaire pour que le projet soit “utile”.
 
 - Élément 1:
-  - Composant `SmartSkeleton` supportant mode simple et mode list.
+  - SmartSkeleton pour un composant unique
 
 - Élément 2:
-  - Mode CSS skeleton (texte masqué, surfaces grises, shimmer optionnel).
+  - SmartSkeletonList pour les listes avec persistance
 
 - Élément 3:
-  - Persistance automatique du count en `localStorage`.
+  - Mode skeleton via CSS (texte masqué, surfaces neutres)
 
 - Limite volontaire du MVP:
-  - Pas de presets UI kit.
-  - Pas de thème avancé.
-  - Pas de SSR-specific logic.
+  - Pas de thèmes ni presets UI kit
+  - Pas d’animation avancée
+  - Pas de SSR-specific logic
 
 ## 7. Évolutions possibles (hors MVP)
 
 Ce que le projet pourrait devenir, sans engagement.
 
 - Fonctionnalités envisagées:
-  - Presets CSS pour AntDesign, MUI, Chakra.
-  - Animation configurable (shimmer, pulse, none).
-  - Storage custom (sessionStorage, memory).
+  - Animation (shimmer / pulse / none)
+  - Storage custom (sessionStorage, memory)
+  - Presets pour AntDesign/MUI/Chakra
 
 - Variantes ou extensions possibles:
-  - Support d’un cache global par page.
-  - Outils dev pour visualiser les counts persistés.
+  - Playground pour visualiser le skeleton vs rendu final
+  - Debug mode pour voir les valeurs persistées
 
 - Ce que ça apporterait de plus:
-  - Intégration plus rapide dans des stacks existantes.
-  - Meilleure cohérence visuelle cross-app.
+  - Intégration plus rapide dans des UIs existantes
+  - Meilleure adoption sans surcoût UX
 
 ## 8. Contraintes
 
 Règles non négociables.
 
 - Type de projet:
-  - Librairie React UI, agnostique.
+  - Librairie UI React, agnostique
 
 - Contraintes techniques ou de format:
-  - Aucun DOM read.
-  - Aucun effet de bord caché.
-  - API déclarative et explicite.
+  - Aucun DOM read ni auto-measure
+  - API déclarative
+  - Layout strictement préservé
 
 - Contraintes pratiques (temps, perf, taille, coût):
-  - Bundle léger.
-  - Coût runtime négligeable.
-  - Warnings uniquement en mode dev.
+  - Bundle léger
+  - Coût runtime faible
+  - Warnings uniquement en mode dev
 
 ## 9. Notes
-
-- Décisions importantes prises:
-  - Le count est toujours déduit de `items.length`.
-  - La persistance est automatique mais opt-in via `storageKey`.
-  - Les collisions de clés génèrent un warning, pas une erreur.
-
-- Idées futures possibles:
-  - Documentation orientée UX plutôt que technique.
-  - Playground visuel.
-
-- Liens ou références utiles:
-  - CLS (Cumulative Layout Shift)
-  - Skeleton loading patterns
