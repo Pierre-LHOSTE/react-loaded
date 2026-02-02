@@ -1,4 +1,4 @@
-import { cloneElement, type ReactElement } from "react";
+import { Fragment, type ReactElement } from "react";
 import { usePersistedCount } from "../../hooks/usePersistedCount/usePersistedCount";
 import { SmartSkeleton } from "../SmartSkeleton/SmartSkeleton";
 
@@ -50,19 +50,19 @@ export function SmartSkeletonList<T>({
   });
 
   if (loading) {
-    return (
-      <>
-        {Array.from({ length: skeletonCount }, (_, index) => (
-          <SmartSkeleton
-            key={`skeleton-${index}`}
-            loading={true}
-            element={renderSkeleton(index)}
-            animate={animate}
-            suppressRefWarning={suppressRefWarning}
-          />
-        ))}
-      </>
-    );
+    const skeletons = new Array(skeletonCount);
+    for (let index = 0; index < skeletonCount; index += 1) {
+      skeletons[index] = (
+        <SmartSkeleton
+          key={`skeleton-${index}`}
+          loading={true}
+          element={renderSkeleton(index)}
+          animate={animate}
+          suppressRefWarning={suppressRefWarning}
+        />
+      );
+    }
+    return <>{skeletons}</>;
   }
 
   if (!items || items.length === 0) {
@@ -71,11 +71,11 @@ export function SmartSkeletonList<T>({
 
   return (
     <>
-      {items.map((item, index) =>
-        cloneElement(renderItem(item, index), {
-          key: keyExtractor(item, index),
-        }),
-      )}
+      {items.map((item, index) => (
+        <Fragment key={keyExtractor(item, index)}>
+          {renderItem(item, index)}
+        </Fragment>
+      ))}
     </>
   );
 }

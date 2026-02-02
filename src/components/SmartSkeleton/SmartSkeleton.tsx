@@ -115,28 +115,34 @@ const INTERACTIVE_ELEMENTS = new Set([
 ]);
 
 const BUTTON_LIKE_SELECTOR = "button,input,textarea,select,a,[role='button']";
+const SKIPPED_TAGS = new Set([
+  "SCRIPT",
+  "STYLE",
+  "LINK",
+  "META",
+  "NOSCRIPT",
+  "TEMPLATE",
+]);
 
 function getTagName(el: Element): string {
   return el.tagName.toUpperCase();
 }
 
-function isButtonLikeElement(el: Element): boolean {
-  const tagName = getTagName(el);
+function isButtonLikeElement(el: Element, tagName = getTagName(el)): boolean {
   if (INTERACTIVE_ELEMENTS.has(tagName)) return true;
   const role = el.getAttribute("role");
   return role === "button";
 }
 
-function isButtonLikeDescendant(el: Element): boolean {
+function isButtonLikeDescendant(el: Element, tagName: string): boolean {
   const closestButton = el.closest(BUTTON_LIKE_SELECTOR);
-  return Boolean(closestButton && !isButtonLikeElement(el));
+  return Boolean(closestButton && !isButtonLikeElement(el, tagName));
 }
 
-function isContentElement(el: Element): boolean {
-  const tagName = getTagName(el);
+function isContentElement(el: Element, tagName = getTagName(el)): boolean {
   if (MEDIA_ELEMENTS.has(tagName)) return true;
   if (SVG_ELEMENTS.has(tagName)) return true;
-  if (isButtonLikeElement(el)) return true;
+  if (isButtonLikeElement(el, tagName)) return true;
 
   const isLeafNode = el.childElementCount === 0;
 
@@ -165,10 +171,6 @@ function resolveTextAlign(el: HTMLElement): "left" | "center" | "right" {
   return "left";
 }
 
-function getQuerySelector(): string {
-  return "*:not(script):not(style):not(link):not(meta):not(noscript):not(template)";
-}
-
 export function applySkeletonClasses(
   rootElement: Element,
   options: { animate?: boolean } = {},
@@ -191,20 +193,14 @@ export function applySkeletonClasses(
   }
 
   // Only add specific classes where needed (text, media, content)
-  let elements: Element[];
-  try {
-    const selector = getQuerySelector();
-    elements = [
-      rootElement,
-      ...Array.from(rootElement.querySelectorAll(selector)),
-    ];
-  } catch {
-    return;
-  }
-  for (const el of elements) {
+  const descendants = rootElement.getElementsByTagName("*");
+
+  const processElement = (el: Element) => {
     const tagName = getTagName(el);
-    if (isButtonLikeDescendant(el) && !SVG_ELEMENTS.has(tagName)) continue;
-    if (!isContentElement(el)) continue;
+    if (SKIPPED_TAGS.has(tagName)) return;
+    if (!isContentElement(el, tagName)) return;
+    if (!SVG_ELEMENTS.has(tagName) && isButtonLikeDescendant(el, tagName))
+      return;
 
     const htmlEl = el as HTMLElement;
     const textContent = el.textContent?.trim();
@@ -214,7 +210,7 @@ export function applySkeletonClasses(
       isLeafWithText &&
       !MEDIA_ELEMENTS.has(tagName) &&
       !SVG_ELEMENTS.has(tagName) &&
-      !isButtonLikeElement(el)
+      !isButtonLikeElement(el, tagName)
     ) {
       // Text elements: pseudo-element with ch-based width
       htmlEl.classList.add("loaded-text-skeleton");
@@ -233,6 +229,11 @@ export function applySkeletonClasses(
       // Interactive elements (buttons, inputs, etc.)
       htmlEl.classList.add("loaded-skeleton-content");
     }
+  };
+
+  processElement(rootElement);
+  for (const el of descendants) {
+    processElement(el);
   }
 }
 
