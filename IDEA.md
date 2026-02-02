@@ -109,7 +109,6 @@ Le minimum nécessaire pour que le projet soit “utile”.
 
 - Limite volontaire du MVP:
   - Pas de thèmes ni presets UI kit
-  - Pas d’animation avancée
   - Pas de SSR-specific logic
 
 ## 7. Évolutions possibles (hors MVP)
@@ -117,7 +116,7 @@ Le minimum nécessaire pour que le projet soit “utile”.
 Ce que le projet pourrait devenir, sans engagement.
 
 - Fonctionnalités envisagées:
-  - Animation (shimmer / pulse / none)
+  - ~~Animation (shimmer / pulse / none)~~ ✓ Shimmer implémenté (prop `animate`)
   - Storage custom (sessionStorage, memory)
   - Presets pour AntDesign/MUI/Chakra
 
@@ -147,3 +146,48 @@ Règles non négociables.
   - Warnings uniquement en mode dev
 
 ## 9. Notes
+
+Exemples d'utilisations
+
+### Composant simple
+
+```ts
+<SmartSkeleton
+  loading={loading}
+  element={<UserCard user={{ name: "username", age: 1 }} />}
+>
+  <UserCard user={user} />
+</SmartSkeleton>
+```
+
+```ts
+if (loading) {
+  return (
+    <SmartSkeleton
+      element={<UserCard user={{ name: "username", age: 1 }} />}
+    />
+  );
+}
+
+return <UserCard user={user} />;
+```
+
+### Liste
+
+```ts
+<SmartSkeletonList
+  storageKey="team-members"
+  loading={loading}
+  items={members}
+  defaultCount={6}
+  renderItem={(member) => {
+    return <MemberCard member={member} />;
+  }}
+  renderSkeleton={(index) => {
+    return <MemberCard member={{ id: "skel-" + index, name: "name", age: 0 }} />;
+  }}
+  keyExtractor={(member) => {
+    return member.id;
+  }}
+/>
+```
