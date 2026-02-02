@@ -199,8 +199,7 @@ export function applySkeletonClasses(
     const tagName = getTagName(el);
     if (SKIPPED_TAGS.has(tagName)) return;
     if (!isContentElement(el, tagName)) return;
-    if (!SVG_ELEMENTS.has(tagName) && isButtonLikeDescendant(el, tagName))
-      return;
+    if (isButtonLikeDescendant(el, tagName)) return;
 
     const htmlEl = el as HTMLElement;
     const textContent = el.textContent?.trim();
