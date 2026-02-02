@@ -165,6 +165,10 @@ function resolveTextAlign(el: HTMLElement): "left" | "center" | "right" {
   return "left";
 }
 
+function getQuerySelector(): string {
+  return "*:not(script):not(style):not(link):not(meta):not(noscript):not(template)";
+}
+
 export function applySkeletonClasses(
   rootElement: Element,
   options: { animate?: boolean } = {},
@@ -189,7 +193,11 @@ export function applySkeletonClasses(
   // Only add specific classes where needed (text, media, content)
   let elements: Element[];
   try {
-    elements = [rootElement, ...Array.from(rootElement.querySelectorAll("*"))];
+    const selector = getQuerySelector();
+    elements = [
+      rootElement,
+      ...Array.from(rootElement.querySelectorAll(selector)),
+    ];
   } catch {
     return;
   }
