@@ -4,11 +4,11 @@ import {
   type Ref,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { SkeletonContext } from "../SkeletonContext/SkeletonContext";
+import { useIsomorphicLayoutEffect } from "../../utils/useIsomorphicLayoutEffect";
 import "./SmartSkeleton.css";
 
 // Text width configuration (in ch units)
@@ -51,14 +51,6 @@ function resolveRefTarget(node: unknown): Element | null {
   return null;
 }
 
-function isDevEnv(): boolean {
-  if (typeof globalThis === "undefined") return false;
-  const maybeProcess = (
-    globalThis as { process?: { env?: { NODE_ENV?: string } } }
-  ).process;
-  return maybeProcess?.env?.NODE_ENV !== "production";
-}
-
 function getElementDisplayName(element: ReactElement): string {
   const type = element.type;
   if (typeof type === "string") {
@@ -77,17 +69,17 @@ function getElementDisplayName(element: ReactElement): string {
 
 /**
  * Get the original ref from the element, supporting both React 18 and React 19.
+ * React 19: ref is a regular prop on element.props.ref
  * React 18: ref is on element.ref
- * React 19: ref can also be on element.props.ref
  */
 function getOriginalRef(element: ReactElement): Ref<unknown> | undefined {
-  // React 18 style
-  const legacyRef = (element as ReactElement & { ref?: Ref<unknown> }).ref;
-  if (legacyRef) return legacyRef;
-
   // React 19 style (ref as prop)
   const propsRef = (element.props as { ref?: Ref<unknown> })?.ref;
   if (propsRef) return propsRef;
+
+  // React 18 style
+  const legacyRef = (element as ReactElement & { ref?: Ref<unknown> }).ref;
+  if (legacyRef) return legacyRef;
 
   return undefined;
 }
@@ -324,7 +316,7 @@ export function SmartSkeleton({
         setNeedsWrapper(true);
 
         // Emit warning (deduplicated by component name)
-        if (!suppressRefWarning && isDevEnv()) {
+        if (!suppressRefWarning && process.env.NODE_ENV !== "production") {
           const displayName = getElementDisplayName(element);
           if (!warnedComponents.has(displayName)) {
             console.warn(
@@ -358,7 +350,7 @@ export function SmartSkeleton({
 
   // Detect if ref was never called (component ignores ref entirely)
   // useLayoutEffect runs synchronously after DOM mutations but before paint
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!loading || needsWrapper) return;
 
     // At this point, React has already attempted to attach refs
@@ -367,7 +359,7 @@ export function SmartSkeleton({
       setNeedsWrapper(true);
 
       // Emit warning
-      if (!suppressRefWarning && isDevEnv()) {
+      if (!suppressRefWarning && process.env.NODE_ENV !== "production") {
         const displayName = getElementDisplayName(element);
         if (!warnedComponents.has(displayName)) {
           console.warn(

@@ -250,7 +250,7 @@ The same seed always produces the same text widths, making skeleton output deter
 - **React 18 and 19** are supported.
 - Persistence uses `localStorage` under the root key `loaded`.
 - In skeleton mode, the library applies CSS classes on the subtree. Components should accept `className` and ideally forward refs.
-- SSR: `SmartSkeleton` uses `useLayoutEffect`. Consider a client-only usage or an isomorphic layout effect in SSR setups.
+- SSR: the library uses an isomorphic layout effect to avoid server warnings and keep hydration stable.
 
 ## License
 

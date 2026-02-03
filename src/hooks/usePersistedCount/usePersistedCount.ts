@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-
-function isDevEnv(): boolean {
-  if (typeof globalThis === "undefined") return false;
-  const maybeProcess = (
-    globalThis as { process?: { env?: { NODE_ENV?: string } } }
-  ).process;
-  return maybeProcess?.env?.NODE_ENV !== "production";
-}
+import { useIsomorphicLayoutEffect } from "../../utils/useIsomorphicLayoutEffect";
 
 const STORAGE_KEY = "loaded";
 
@@ -57,17 +50,21 @@ export function usePersistedCount({
   minCount = 1,
   maxCount,
 }: UsePersistedCountOptions): number {
-  const [count, setCount] = useState<number>(() => {
-    if (storageKey) {
-      const stored = getStoredCount(storageKey);
-      if (stored !== null) {
-        return clampCount(stored, minCount, maxCount);
-      }
-    }
-    return clampCount(defaultCount, minCount, maxCount);
-  });
+  // Always start from the default to match SSR output, then (on the client)
+  // sync to the persisted value in a layout effect before first paint.
+  const [count, setCount] = useState<number>(() =>
+    clampCount(defaultCount, minCount, maxCount),
+  );
 
   const hasWarnedRef = useRef(false);
+
+  useIsomorphicLayoutEffect(() => {
+    if (!storageKey) return;
+    const stored = getStoredCount(storageKey);
+    if (stored === null) return;
+    const next = clampCount(stored, minCount, maxCount);
+    setCount((prev) => (Object.is(prev, next) ? prev : next));
+  }, [storageKey, minCount, maxCount]);
 
   useEffect(() => {
     if (!loading && currentCount !== undefined) {
@@ -81,7 +78,7 @@ export function usePersistedCount({
   }, [loading, currentCount, storageKey, minCount, maxCount]);
 
   useEffect(() => {
-    if (isDevEnv() && !storageKey && !hasWarnedRef.current) {
+    if (process.env.NODE_ENV !== "production" && !storageKey && !hasWarnedRef.current) {
       console.warn(
         "[Loaded] SmartSkeletonList used without storageKey. " +
           "The count will reset on remount. Add a storageKey to persist across sessions.",
