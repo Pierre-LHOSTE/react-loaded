@@ -1,10 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  createRef,
-} from "react";
+import { createRef, forwardRef, useImperativeHandle, useRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { applySkeletonClasses, SmartSkeleton } from "./SmartSkeleton";
 
@@ -215,7 +210,9 @@ describe("SmartSkeleton", () => {
     );
 
     await waitFor(() => {
-      expect(document.querySelector(".loaded-skeleton-wrapper")).toBeInTheDocument();
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).toBeInTheDocument();
     });
 
     // Switch to a native element that supports refs
@@ -237,20 +234,14 @@ describe("SmartSkeleton", () => {
 
   it("triggers element change detection when key changes", () => {
     const { rerender } = render(
-      <SmartSkeleton
-        loading={true}
-        element={<div key="a">Content A</div>}
-      />,
+      <SmartSkeleton loading={true} element={<div key="a">Content A</div>} />,
     );
 
     const firstDiv = screen.getByText("Content A");
     expect(firstDiv).toHaveClass("loaded-skeleton-mode");
 
     rerender(
-      <SmartSkeleton
-        loading={true}
-        element={<div key="b">Content B</div>}
-      />,
+      <SmartSkeleton loading={true} element={<div key="b">Content B</div>} />,
     );
 
     const secondDiv = screen.getByText("Content B");
@@ -341,7 +332,9 @@ describe("SmartSkeleton", () => {
 
     applySkeletonClasses(root);
 
-    expect(root.querySelector("script")).not.toHaveClass("loaded-text-skeleton");
+    expect(root.querySelector("script")).not.toHaveClass(
+      "loaded-text-skeleton",
+    );
     expect(root.querySelector("style")).not.toHaveClass("loaded-text-skeleton");
     expect(root.querySelector("p")).toHaveClass("loaded-text-skeleton");
   });
@@ -368,7 +361,9 @@ describe("SmartSkeleton", () => {
     applySkeletonClasses(root);
 
     expect(root.querySelector("input")).toHaveClass("loaded-skeleton-content");
-    expect(root.querySelector("textarea")).toHaveClass("loaded-skeleton-content");
+    expect(root.querySelector("textarea")).toHaveClass(
+      "loaded-skeleton-content",
+    );
     expect(root.querySelector("select")).toHaveClass("loaded-skeleton-content");
     expect(root.querySelector("a")).toHaveClass("loaded-skeleton-content");
   });
@@ -389,7 +384,11 @@ describe("SmartSkeleton", () => {
     render(
       <SmartSkeleton
         loading={true}
-        element={<div ref={callbackRef} data-testid="with-ref">Content</div>}
+        element={
+          <div ref={callbackRef} data-testid="with-ref">
+            Content
+          </div>
+        }
       />,
     );
 
@@ -405,7 +404,11 @@ describe("SmartSkeleton", () => {
     render(
       <SmartSkeleton
         loading={true}
-        element={<div ref={objectRef} data-testid="with-object-ref">Content</div>}
+        element={
+          <div ref={objectRef} data-testid="with-object-ref">
+            Content
+          </div>
+        }
       />,
     );
 
@@ -416,15 +419,15 @@ describe("SmartSkeleton", () => {
   });
 
   it("handles forwardRef component with nativeElement pattern", async () => {
-    const RefWithNativeElement = forwardRef<{ nativeElement: HTMLSpanElement }>(
-      (_, ref) => {
-        const spanRef = useRef<HTMLSpanElement>(null);
-        useImperativeHandle(ref, () => ({
-          nativeElement: spanRef.current!,
-        }));
-        return <span ref={spanRef}>Native element pattern</span>;
-      },
-    );
+    const RefWithNativeElement = forwardRef<{
+      nativeElement: HTMLSpanElement | null;
+    }>((_, ref) => {
+      const spanRef = useRef<HTMLSpanElement>(null);
+      useImperativeHandle(ref, () => ({
+        nativeElement: spanRef.current,
+      }));
+      return <span ref={spanRef}>Native element pattern</span>;
+    });
 
     render(
       <SmartSkeleton

@@ -188,9 +188,11 @@ describe("usePersistedCount", () => {
   });
 
   it("handles localStorage setItem failure gracefully", async () => {
-    const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new Error("QuotaExceededError");
-    });
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("QuotaExceededError");
+      });
 
     const initialProps: UsePersistedCountOptions = {
       loading: true,

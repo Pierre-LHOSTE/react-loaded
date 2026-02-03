@@ -4,7 +4,9 @@ import { SkeletonContext, useIsSkeletonMode } from "./SkeletonContext";
 
 function TestConsumer() {
   const isSkeletonMode = useIsSkeletonMode();
-  return <div data-testid="result">{isSkeletonMode ? "skeleton" : "normal"}</div>;
+  return (
+    <div data-testid="result">{isSkeletonMode ? "skeleton" : "normal"}</div>
+  );
 }
 
 describe("SkeletonContext", () => {
