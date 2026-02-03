@@ -229,6 +229,22 @@ const WrappedComponent = forwardRef((props, ref) => (
 ));
 ```
 
+## Stable Text Widths with `seed`
+
+By default, skeleton text bars have slightly randomized widths to look more natural. If you need consistent widths across renders (useful for tests or SSR hydration), pass a `seed`:
+
+```tsx
+<SmartSkeleton
+  loading={isLoading}
+  seed="user-profile"
+  element={<ProfileCard user={mockUser} />}
+>
+  <ProfileCard user={user} />
+</SmartSkeleton>
+```
+
+The same seed always produces the same text widths, making skeleton output deterministic.
+
 ## Notes
 
 - **React 18 and 19** are supported.

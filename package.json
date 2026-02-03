@@ -1,5 +1,5 @@
 {
-  "name": "loaded",
+  "name": "react-loaded",
   "version": "0.1.0",
   "description": "Zero-layout-shift skeleton screens for React",
   "type": "module",
