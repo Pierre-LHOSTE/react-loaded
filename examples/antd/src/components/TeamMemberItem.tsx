@@ -1,5 +1,6 @@
 import { Avatar, List, Tag } from "antd";
 import { UserOutlined } from "@ant-design/icons";
+import type { Ref } from "react";
 
 export interface TeamMember {
   id: string;
@@ -10,9 +11,10 @@ export interface TeamMember {
 
 interface TeamMemberItemProps {
   member: TeamMember;
+  ref?: Ref<HTMLDivElement>;
 }
 
-export function TeamMemberItem({ member }: TeamMemberItemProps) {
+export function TeamMemberItem({ member, ref }: TeamMemberItemProps) {
   const statusColor =
     member.status === "online"
       ? "green"
@@ -21,7 +23,7 @@ export function TeamMemberItem({ member }: TeamMemberItemProps) {
         : "default";
 
   return (
-    <List.Item>
+    <List.Item ref={ref}>
       <List.Item.Meta
         avatar={<Avatar icon={<UserOutlined />} />}
         title={member.name}

@@ -1,5 +1,5 @@
 import { Card, Col, Statistic } from "antd";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 
 export interface Stat {
   key: string;
@@ -12,7 +12,7 @@ export interface Stat {
 
 interface StatCardProps {
   stat: Stat;
-  ref?: React.Ref<HTMLDivElement>;
+  ref?: Ref<HTMLDivElement>;
 }
 
 export function StatCard({ stat, ref }: StatCardProps) {

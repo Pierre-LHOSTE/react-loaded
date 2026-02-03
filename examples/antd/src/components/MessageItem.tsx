@@ -1,5 +1,6 @@
 import { Avatar, List } from "antd";
 import { MailOutlined } from "@ant-design/icons";
+import type { Ref } from "react";
 
 export interface Message {
   id: string;
@@ -10,11 +11,12 @@ export interface Message {
 
 interface MessageItemProps {
   message: Message;
+  ref?: Ref<HTMLDivElement>;
 }
 
-export function MessageItem({ message }: MessageItemProps) {
+export function MessageItem({ message, ref }: MessageItemProps) {
   return (
-    <List.Item>
+    <List.Item ref={ref}>
       <List.Item.Meta
         avatar={<Avatar icon={<MailOutlined />} />}
         title={message.subject}

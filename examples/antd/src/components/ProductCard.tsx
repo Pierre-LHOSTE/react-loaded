@@ -1,5 +1,6 @@
 import { Button, Card, Rate, Space, Typography } from "antd";
 import { ShoppingCartOutlined } from "@ant-design/icons";
+import type { Ref } from "react";
 
 const { Text } = Typography;
 
@@ -13,14 +14,15 @@ export interface Product {
 
 interface ProductCardProps {
   product: Product;
+  ref?: Ref<HTMLDivElement>;
 }
 
 export function ProductCard(
-  { product }: ProductCardProps,
+  { product, ref }: ProductCardProps,
 ) {
   return (
-    <div>
-      <Card style={{ width: 260 }} hoverable>
+
+      <Card style={{ width: 260 }} hoverable ref={ref}>
         <Space orientation="vertical" size={4} style={{ width: "100%" }}>
           <Text strong>{product.name}</Text>
           <Space>
@@ -41,7 +43,7 @@ export function ProductCard(
           </Button>
         </Space>
       </Card>
-    </div>
+
   );
 }
 

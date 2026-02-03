@@ -1,5 +1,6 @@
 import { Avatar, List, Tag } from "antd";
 import { BellOutlined } from "@ant-design/icons";
+import type { Ref } from "react";
 
 export interface Ticket {
   id: string;
@@ -10,9 +11,10 @@ export interface Ticket {
 
 interface TicketItemProps {
   ticket: Ticket;
+  ref?: Ref<HTMLDivElement>;
 }
 
-export function TicketItem({ ticket }: TicketItemProps) {
+export function TicketItem({ ticket, ref }: TicketItemProps) {
   const priorityColor =
     ticket.priority === "high"
       ? "red"
@@ -21,7 +23,7 @@ export function TicketItem({ ticket }: TicketItemProps) {
         : "green";
 
   return (
-    <List.Item>
+    <List.Item ref={ref}>
       <List.Item.Meta
         avatar={<Avatar icon={<BellOutlined />} />}
         title={`${ticket.customer} • ${ticket.issue}`}
