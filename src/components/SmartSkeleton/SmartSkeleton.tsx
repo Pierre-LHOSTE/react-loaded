@@ -154,15 +154,26 @@ function isContentElement(el: Element, tagName = getTagName(el)): boolean {
 }
 
 /**
- * Calculate text skeleton width in ch units based on text length.
- * Uses the formula: widthCh = clamp(6, 40, len + 2 + jitter)
- * where jitter = rand(-0.2 * len, 0.2 * len)
+ * Calculate text skeleton width in ch units based on text content.
+ * Uses a deterministic jitter: widthCh = clamp(6, 40, len + 2 + jitter)
  */
-function calculateTextWidthCh(textLength: number): number {
-  const jitterRange = 0.2 * textLength;
-  const jitter = (Math.random() * 2 - 1) * jitterRange;
+function calculateTextWidthCh(text: string, seedKey: string): number {
+  const textLength = text.length;
+  const jitterRange = Math.max(4, 0.8 * textLength);
+  const jitter = deterministicJitter(seedKey) * jitterRange;
   const width = textLength + 2 + jitter;
   return Math.max(TEXT_WIDTH_MIN_CH, Math.min(TEXT_WIDTH_MAX_CH, width));
+}
+
+function deterministicJitter(seedKey: string): number {
+  if (!seedKey) return 0;
+  let hash = 2166136261;
+  for (let index = 0; index < seedKey.length; index += 1) {
+    hash ^= seedKey.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  const normalized = (hash >>> 0) / 0xffffffff;
+  return normalized * 2 - 1;
 }
 
 function resolveTextAlign(el: HTMLElement): "left" | "center" | "right" {
@@ -174,9 +185,11 @@ function resolveTextAlign(el: HTMLElement): "left" | "center" | "right" {
 
 export function applySkeletonClasses(
   rootElement: Element,
-  options: { animate?: boolean } = {},
+  options: { animate?: boolean; seed?: string | number } = {},
 ): void {
-  const { animate = true } = options;
+  const { animate = true, seed } = options;
+  const baseSeed =
+    seed === undefined || seed === null ? "loaded" : String(seed);
 
   if (!isElement(rootElement)) {
     return;
@@ -195,6 +208,8 @@ export function applySkeletonClasses(
 
   // Only add specific classes where needed (text, media, content)
   const descendants = rootElement.getElementsByTagName("*");
+
+  let textIndex = 0;
 
   const processElement = (el: Element) => {
     const tagName = getTagName(el);
@@ -215,18 +230,10 @@ export function applySkeletonClasses(
       // Text elements: overlay bar with ch-based width
       htmlEl.classList.add("loaded-text-skeleton");
       htmlEl.dataset.skeletonAlign = resolveTextAlign(htmlEl);
-      const textLength = textContent?.length ?? 0;
-      const widthCh = calculateTextWidthCh(textLength);
+      const seedKey = `${baseSeed}|${textIndex}|${textContent ?? ""}`;
+      textIndex += 1;
+      const widthCh = calculateTextWidthCh(textContent ?? "", seedKey);
       htmlEl.style.setProperty("--skeleton-text-width", `${widthCh}ch`);
-      const existingBar = htmlEl.querySelector(
-        ".loaded-text-skeleton-bar",
-      ) as HTMLElement | null;
-      if (!existingBar) {
-        const bar = document.createElement("span");
-        bar.classList.add("loaded-text-skeleton-bar");
-        bar.setAttribute("aria-hidden", "true");
-        htmlEl.appendChild(bar);
-      }
     } else if (MEDIA_ELEMENTS.has(tagName)) {
       // Media elements
       htmlEl.classList.add("loaded-skeleton-media");
@@ -257,6 +264,8 @@ export interface SmartSkeletonProps {
   animate?: boolean;
   /** Additional CSS class name */
   className?: string;
+  /** Optional seed to stabilize skeleton text widths */
+  seed?: string | number;
   /** Suppress warning when auto-wrapper is applied. Default: false */
   suppressRefWarning?: boolean;
 }
@@ -267,12 +276,14 @@ export function SmartSkeleton({
   loading = false,
   animate = true,
   className = "",
+  seed,
   suppressRefWarning = false,
 }: SmartSkeletonProps): ReactElement | null {
   const hasAppliedRef = useRef(false);
   const refWasCalledRef = useRef(false);
   const lastElementRef = useRef<ReactElement | null>(null);
-  const previousElementRef = useRef<ReactElement | null>(null);
+  const previousElementTypeRef = useRef<ReactElement["type"] | null>(null);
+  const previousElementKeyRef = useRef<ReactElement["key"] | null>(null);
   const [needsWrapper, setNeedsWrapper] = useState(false);
 
   // Reset flags when loading changes or element changes
@@ -283,11 +294,21 @@ export function SmartSkeleton({
   }
 
   useEffect(() => {
-    if (previousElementRef.current && previousElementRef.current !== element) {
+    const elementType = element.type;
+    const elementKey = element.key ?? null;
+    const previousType = previousElementTypeRef.current;
+    const previousKey = previousElementKeyRef.current;
+
+    if (
+      previousType !== null &&
+      (previousType !== elementType || previousKey !== elementKey)
+    ) {
       setNeedsWrapper(false);
     }
-    previousElementRef.current = element;
-  }, [element]);
+
+    previousElementTypeRef.current = elementType;
+    previousElementKeyRef.current = elementKey;
+  }, [element.type, element.key]);
 
   const originalRef = getOriginalRef(element);
 
@@ -317,14 +338,22 @@ export function SmartSkeleton({
       }
 
       if (target && loading && !hasAppliedRef.current) {
-        applySkeletonClasses(target, { animate });
+        applySkeletonClasses(target, { animate, seed });
         hasAppliedRef.current = true;
       }
 
       // Forward ref to original element
       forwardRef(originalRef, node);
     },
-    [loading, element, needsWrapper, suppressRefWarning, originalRef, animate],
+    [
+      loading,
+      element,
+      needsWrapper,
+      suppressRefWarning,
+      originalRef,
+      animate,
+      seed,
+    ],
   );
 
   // Detect if ref was never called (component ignores ref entirely)

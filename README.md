@@ -111,6 +111,7 @@ Wraps a single component to display it in skeleton mode while loading.
 | `loading` | `boolean` | `false` | Whether to show the skeleton |
 | `animate` | `boolean` | `true` | Enable shimmer animation |
 | `className` | `string` | - | Additional CSS classes |
+| `seed` | `string \| number` | - | Stable seed for text width randomness |
 | `suppressRefWarning` | `boolean` | `false` | Suppress console warning when auto-wrapper is needed |
 
 ### `<SmartSkeletonList>`
@@ -128,6 +129,7 @@ Renders a list with skeleton placeholders and optional count persistence.
 | `minCount` | `number` | `1` | Minimum skeletons to display |
 | `maxCount` | `number` | - | Maximum skeletons to display |
 | `animate` | `boolean` | `true` | Enable shimmer animation |
+| `seed` | `string \| number` | - | Stable seed for text width randomness |
 | `suppressRefWarning` | `boolean` | `false` | Suppress console warning when auto-wrapper is needed |
 | `keyExtractor` | `(item: T, index: number) => string | number` | `index` | Extract unique key for each item |
 

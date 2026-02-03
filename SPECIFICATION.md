@@ -35,6 +35,8 @@ Props:
   - Active l'animation shimmer.
 - `className?: string`
   - Classes additionnelles appliquees au wrapper.
+- `seed?: string | number`
+  - Seed stable pour l'aleatoire des largeurs de texte.
 - `suppressRefWarning?: boolean` (defaut: `false`)
   - Desactive le warning si un wrapper auto est applique.
 
@@ -60,6 +62,8 @@ Props:
 - `maxCount?: number`
   - Limite superieure pour le nombre de skeletons.
 - `animate?: boolean` (defaut: `true`)
+- `seed?: string | number`
+  - Seed stable pour l'aleatoire des largeurs de texte.
 - `suppressRefWarning?: boolean` (defaut: `false`)
   - Desactive le warning si un wrapper auto est applique.
 - `keyExtractor?: (item: T, index: number) => string | number` (defaut: `index`)
@@ -106,11 +110,12 @@ Tokens CSS exposes:
 Heuristique de largeur des textes (sans mesure):
 
 - La largeur du pseudo-element texte est basee sur la longueur du texte factice rendu.
-- Unite: `ch` (caracteres), avec `max-width: 100%` pour ne jamais depasser le conteneur.
+- Unite: `ch` (caracteres), avec `max-width: 90%` pour ne jamais depasser le conteneur.
 - Clamp: min `6ch`, max `40ch`.
 - Regle continue (pas d'intervalles fixes):
   - `widthCh = clamp(6, 40, len + 2 + jitter)`
-  - `jitter = rand(-0.2 * len, 0.2 * len)`
+  - `jitterRange = max(4, 0.8 * len)`
+  - `jitter` deterministe base sur un seed, dans `[-jitterRange, +jitterRange]`
   - Si `len` est tres grand, le clamp force `40ch`.
 
 ## 8. Exemples d'usage

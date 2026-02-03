@@ -7,6 +7,7 @@
 
 .loaded-skeleton-mode {
   user-select: none;
+  pointer-events: none;
 }
 
 /* Base styles applied to ALL elements inside skeleton via CSS selector */
@@ -54,30 +55,30 @@
   background-color: transparent !important;
 }
 
-/* Text skeleton bar inserted as a child element */
-.loaded-skeleton-mode .loaded-text-skeleton-bar {
+/* Text skeleton bar drawn via pseudo-element */
+.loaded-skeleton-mode .loaded-text-skeleton::before {
+  content: "" !important;
   position: absolute !important;
   left: 0 !important;
   width: var(--skeleton-text-width, 100%) !important;
-  max-width: 100% !important;
+  max-width: 90% !important;
   top: var(--loaded-text-inset) !important;
   bottom: var(--loaded-text-inset) !important;
-  background-color: var(--loaded-bg-content) !important;
+  background: var(--loaded-bg-content) !important;
+  background-image: none !important;
   border-radius: var(--loaded-border-radius) !important;
   pointer-events: none !important;
   transform: none !important;
 }
 
 .loaded-skeleton-mode
-  .loaded-text-skeleton[data-skeleton-align="center"]
-  .loaded-text-skeleton-bar {
+  .loaded-text-skeleton[data-skeleton-align="center"]::before {
   left: 50% !important;
   transform: translateX(-50%) !important;
 }
 
 .loaded-skeleton-mode
-  .loaded-text-skeleton[data-skeleton-align="right"]
-  .loaded-text-skeleton-bar {
+  .loaded-text-skeleton[data-skeleton-align="right"]::before {
   left: auto !important;
   right: 0 !important;
 }

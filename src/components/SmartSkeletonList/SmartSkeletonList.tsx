@@ -21,6 +21,8 @@ export interface SmartSkeletonListProps<T> {
   maxCount?: number;
   /** Enable shimmer animation. Default: true */
   animate?: boolean;
+  /** Optional seed to stabilize skeleton text widths */
+  seed?: string | number;
   /** Suppress warning when auto-wrapper is applied. Default: false */
   suppressRefWarning?: boolean;
   /** Extract unique key for each item. Default: index */
@@ -37,6 +39,7 @@ export function SmartSkeletonList<T>({
   minCount = 1,
   maxCount,
   animate = true,
+  seed,
   suppressRefWarning = false,
   keyExtractor = (_, index) => index,
 }: SmartSkeletonListProps<T>): ReactElement | null {
@@ -52,12 +55,14 @@ export function SmartSkeletonList<T>({
   if (loading) {
     const skeletons = new Array(skeletonCount);
     for (let index = 0; index < skeletonCount; index += 1) {
+      const itemSeed = seed === undefined ? `${index}` : `${seed}:${index}`;
       skeletons[index] = (
         <SmartSkeleton
           key={`skeleton-${index}`}
           loading={true}
           element={renderSkeleton(index)}
           animate={animate}
+          seed={itemSeed}
           suppressRefWarning={suppressRefWarning}
         />
       );
