@@ -53,7 +53,7 @@
     "ux"
   ],
   "author": "vingt-douze <vingt-douze@protonmail.com> (https://vingt-douze.com)",
-  "license": "ISC",
+  "license": "MIT",
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"

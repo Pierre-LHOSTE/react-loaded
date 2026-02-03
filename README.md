@@ -1,4 +1,4 @@
-# Loaded
+# React Loaded
 
 > Loading should feel loaded before it actually loads.
 
@@ -15,7 +15,7 @@ Traditional skeleton screens create a disconnect between loading and loaded stat
 
 ## The Solution
 
-**Loaded** renders your real components in "skeleton mode" using CSS masking. The skeleton is your component, just with content hidden. This guarantees:
+**React Loaded** renders your real components in "skeleton mode" using CSS masking. The skeleton is your component, just with content hidden. This guarantees:
 
 - **Zero layout shift** between loading and loaded states
 - **Pixel-perfect structure** that matches the final render
@@ -24,13 +24,13 @@ Traditional skeleton screens create a disconnect between loading and loaded stat
 ## Installation
 
 ```bash
-pnpm add loaded
+pnpm add react-loaded
 ```
 
 Required: import the stylesheet once in your app:
 
 ```tsx
-import "loaded/style.css";
+import "react-loaded/style.css";
 ```
 
 ## Quick Start
@@ -38,7 +38,7 @@ import "loaded/style.css";
 ### Single Component
 
 ```tsx
-import { SmartSkeleton } from "loaded";
+import { SmartSkeleton } from "react-loaded";
 
 function UserProfile({ userId }) {
   const { data: user, isLoading } = useQuery(["user", userId], fetchUser);
@@ -72,7 +72,7 @@ return <ProfileCard user={user} />;
 ### Lists with Persistence
 
 ```tsx
-import { SmartSkeletonList } from "loaded";
+import { SmartSkeletonList } from "react-loaded";
 
 function ProductList() {
   const { data: products, isLoading } = useQuery(["products"], fetchProducts);
@@ -138,7 +138,7 @@ Renders a list with skeleton placeholders and optional count persistence.
 Hook to detect if a component is rendered inside a skeleton.
 
 ```tsx
-import { useIsSkeletonMode } from "loaded";
+import { useIsSkeletonMode } from "react-loaded";
 
 function Avatar({ src }) {
   const isSkeleton = useIsSkeletonMode();
@@ -157,7 +157,7 @@ function Avatar({ src }) {
 Low-level hook for custom persistence logic.
 
 ```tsx
-import { usePersistedCount } from "loaded";
+import { usePersistedCount } from "react-loaded";
 
 const count = usePersistedCount({
   storageKey: "my-list",
@@ -208,7 +208,7 @@ The skeleton preserves:
 
 ## Ref Handling
 
-Components must forward refs for optimal rendering. If a component does not forward its ref, Loaded automatically wraps it in a `div` and logs a development warning.
+Components must forward refs for optimal rendering. If a component does not forward its ref, React Loaded automatically wraps it in a `div` and logs a development warning.
 
 To suppress the warning:
 
@@ -254,4 +254,4 @@ The same seed always produces the same text widths, making skeleton output deter
 
 ## License
 
-ISC
+MIT
