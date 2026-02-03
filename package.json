@@ -1,7 +1,7 @@
 {
   "name": "loaded",
   "version": "0.1.0",
-  "description": "A React component library",
+  "description": "Zero-layout-shift skeleton screens for React",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -45,8 +45,12 @@
   },
   "keywords": [
     "react",
-    "components",
-    "library"
+    "skeleton",
+    "loading",
+    "placeholder",
+    "layout-shift",
+    "cls",
+    "ux"
   ],
   "author": "vingt-douze <vingt-douze@protonmail.com> (https://vingt-douze.com)",
   "license": "ISC",
