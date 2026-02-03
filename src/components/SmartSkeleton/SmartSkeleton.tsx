@@ -3,6 +3,7 @@ import {
   type ReactElement,
   type Ref,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -271,6 +272,7 @@ export function SmartSkeleton({
   const hasAppliedRef = useRef(false);
   const refWasCalledRef = useRef(false);
   const lastElementRef = useRef<ReactElement | null>(null);
+  const previousElementRef = useRef<ReactElement | null>(null);
   const [needsWrapper, setNeedsWrapper] = useState(false);
 
   // Reset flags when loading changes or element changes
@@ -279,6 +281,13 @@ export function SmartSkeleton({
     refWasCalledRef.current = false;
     lastElementRef.current = element;
   }
+
+  useEffect(() => {
+    if (previousElementRef.current && previousElementRef.current !== element) {
+      setNeedsWrapper(false);
+    }
+    previousElementRef.current = element;
+  }, [element]);
 
   const originalRef = getOriginalRef(element);
 

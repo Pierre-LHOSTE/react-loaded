@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { applySkeletonClasses, SmartSkeleton } from "./SmartSkeleton";
 
@@ -154,7 +154,7 @@ describe("SmartSkeleton", () => {
     expect(inside).not.toHaveClass("loaded-text-skeleton");
   });
 
-  it("adds wrapper and warns when element ref does not resolve to DOM", () => {
+  it("adds wrapper and warns when element ref does not resolve to DOM", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const NoDomRef = () => <span>Child</span>;
@@ -167,14 +167,16 @@ describe("SmartSkeleton", () => {
       />,
     );
 
-    const wrapper = document.querySelector(".loaded-skeleton-wrapper");
-    expect(wrapper).toBeInTheDocument();
-    expect(warnSpy).toHaveBeenCalled();
+    await waitFor(() => {
+      const wrapper = document.querySelector(".loaded-skeleton-wrapper");
+      expect(wrapper).toBeInTheDocument();
+      expect(warnSpy).toHaveBeenCalled();
+    });
 
     warnSpy.mockRestore();
   });
 
-  it("does not warn when suppressRefWarning is true", () => {
+  it("does not warn when suppressRefWarning is true", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const NoDomRef = () => <span>Child</span>;
@@ -187,7 +189,11 @@ describe("SmartSkeleton", () => {
       />,
     );
 
-    expect(warnSpy).not.toHaveBeenCalled();
+    await waitFor(() => {
+      const wrapper = document.querySelector(".loaded-skeleton-wrapper");
+      expect(wrapper).toBeInTheDocument();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
     warnSpy.mockRestore();
   });
 });
