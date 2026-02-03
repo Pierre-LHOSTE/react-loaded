@@ -211,12 +211,21 @@ export function applySkeletonClasses(
       !SVG_ELEMENTS.has(tagName) &&
       !isButtonLikeElement(el, tagName)
     ) {
-      // Text elements: pseudo-element with ch-based width
+      // Text elements: overlay bar with ch-based width
       htmlEl.classList.add("loaded-text-skeleton");
       htmlEl.dataset.skeletonAlign = resolveTextAlign(htmlEl);
       const textLength = textContent?.length ?? 0;
       const widthCh = calculateTextWidthCh(textLength);
       htmlEl.style.setProperty("--skeleton-text-width", `${widthCh}ch`);
+      const existingBar = htmlEl.querySelector(
+        ".loaded-text-skeleton-bar",
+      ) as HTMLElement | null;
+      if (!existingBar) {
+        const bar = document.createElement("span");
+        bar.classList.add("loaded-text-skeleton-bar");
+        bar.setAttribute("aria-hidden", "true");
+        htmlEl.appendChild(bar);
+      }
     } else if (MEDIA_ELEMENTS.has(tagName)) {
       // Media elements
       htmlEl.classList.add("loaded-skeleton-media");

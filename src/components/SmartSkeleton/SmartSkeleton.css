@@ -27,6 +27,14 @@
   background-image: none !important;
   color: transparent !important;
   border-color: transparent !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Hide input placeholders during skeleton */
+.loaded-skeleton-mode ::placeholder {
+  color: transparent !important;
+  opacity: 0 !important;
 }
 
 /* Main wrapper background */
@@ -46,8 +54,8 @@
   background-color: transparent !important;
 }
 
-.loaded-skeleton-mode .loaded-text-skeleton::before {
-  content: "" !important;
+/* Text skeleton bar inserted as a child element */
+.loaded-skeleton-mode .loaded-text-skeleton-bar {
   position: absolute !important;
   left: 0 !important;
   width: var(--skeleton-text-width, 100%) !important;
@@ -56,16 +64,20 @@
   bottom: var(--loaded-text-inset) !important;
   background-color: var(--loaded-bg-content) !important;
   border-radius: var(--loaded-border-radius) !important;
+  pointer-events: none !important;
+  transform: none !important;
 }
 
 .loaded-skeleton-mode
-  .loaded-text-skeleton[data-skeleton-align="center"]::before {
+  .loaded-text-skeleton[data-skeleton-align="center"]
+  .loaded-text-skeleton-bar {
   left: 50% !important;
   transform: translateX(-50%) !important;
 }
 
 .loaded-skeleton-mode
-  .loaded-text-skeleton[data-skeleton-align="right"]::before {
+  .loaded-text-skeleton[data-skeleton-align="right"]
+  .loaded-text-skeleton-bar {
   left: auto !important;
   right: 0 !important;
 }
