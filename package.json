@@ -2,6 +2,14 @@
   "name": "react-loaded",
   "version": "0.1.0",
   "description": "Zero-layout-shift skeleton screens for React",
+  "homepage": "https://github.com/Pierre-LHOSTE/react-loaded#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pierre-LHOSTE/react-loaded.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Pierre-LHOSTE/react-loaded/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -28,6 +36,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "pack": "pnpm pack --pack-destination .artifacts",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint src",
     "format": "biome format --write src",

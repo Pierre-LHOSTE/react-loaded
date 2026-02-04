@@ -5,3 +5,5 @@ dist
 .benchmarks
 coverage
 storybook-static
+.artifacts
+*.tgz
