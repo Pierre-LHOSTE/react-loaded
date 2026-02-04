@@ -42,7 +42,7 @@
     "format": "biome format --write src",
     "format:check": "biome format src",
     "check": "biome check src",
-    "test": "vitest --project unit",
+    "test": "vitest run --project unit",
     "test:watch": "vitest --project unit --watch",
     "test:coverage": "vitest run --project unit --coverage",
     "bench": "vitest bench --config vitest.bench.config.ts",
