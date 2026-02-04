@@ -255,6 +255,7 @@ The same seed always produces the same text widths, making skeleton output deter
 - Persistence uses `localStorage` under the root key `react-loaded` with a versioned schema.
 - In skeleton mode, the library applies CSS classes on the subtree. Components should accept `className` and ideally forward refs.
 - SSR: the library uses an isomorphic layout effect to avoid server warnings and keep hydration stable.
+- JSR/Deno: CSS module imports aren’t supported. For Node/bundlers, import `react-loaded/style.css`. For Deno, you’ll need to copy the CSS into your app (or recreate the styles).
 
 ## License
 

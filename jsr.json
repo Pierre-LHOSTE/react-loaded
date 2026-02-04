@@ -1,8 +1,8 @@
 {
   "name": "@vd/react-loaded",
   "version": "0.1.0",
-  "exports": "./src/index.ts",
+  "exports": "./dist/index.js",
   "publish": {
-    "include": ["README.md", "src/**/*.ts", "src/**/*.tsx", "src/**/*.css"]
+    "include": ["README.md", "LICENSE", "dist/**/*"]
   }
 }

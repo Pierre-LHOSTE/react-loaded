@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { isDevEnv } from "../../utils/isDevEnv";
 import { useIsomorphicLayoutEffect } from "../../utils/useIsomorphicLayoutEffect";
 import { SkeletonContext } from "../SkeletonContext/SkeletonContext";
 import "./SmartSkeleton.css";
@@ -325,7 +326,7 @@ export function SmartSkeleton({
         setNeedsWrapper(true);
 
         // Emit warning (deduplicated by component name)
-        if (!suppressRefWarning && process.env.NODE_ENV !== "production") {
+        if (!suppressRefWarning && isDevEnv()) {
           const displayName = getElementDisplayName(element);
           if (!warnedComponents.has(displayName)) {
             console.warn(
@@ -368,7 +369,7 @@ export function SmartSkeleton({
       setNeedsWrapper(true);
 
       // Emit warning
-      if (!suppressRefWarning && process.env.NODE_ENV !== "production") {
+      if (!suppressRefWarning && isDevEnv()) {
         const displayName = getElementDisplayName(element);
         if (!warnedComponents.has(displayName)) {
           console.warn(
