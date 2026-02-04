@@ -254,6 +254,7 @@ The same seed always produces the same text widths, making skeleton output deter
 - **React 18 and 19** are supported.
 - Persistence uses `localStorage` under the root key `react-loaded` with a versioned schema.
 - In skeleton mode, the library applies CSS classes on the subtree. Components should accept `className` and ideally forward refs.
+- Dev warnings are enabled when `NODE_ENV !== "production"`. If your environment doesn’t inject `NODE_ENV`, you can force them with `globalThis.__REACT_LOADED_DEV__ = true`.
 - SSR: the library uses an isomorphic layout effect to avoid server warnings and keep hydration stable.
 - JSR/Deno: CSS module imports aren’t supported. For Node/bundlers, import `react-loaded/style.css`. For Deno, you’ll need to copy the CSS into your app (or recreate the styles).
 
