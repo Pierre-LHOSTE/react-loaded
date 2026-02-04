@@ -187,15 +187,21 @@ export function applySkeletonClasses(
     return;
   }
 
-  // Apply skeleton mode and wrapper class to the root element
-  // CSS handles base styles for all descendants via .loaded-skeleton-mode *
-  (rootElement as HTMLElement).classList.add(
-    "loaded-skeleton-mode",
-    "loaded-skeleton-wrapper",
-  );
+  const htmlRoot = rootElement as HTMLElement;
+
+  // Apply skeleton mode to the root element
+  htmlRoot.classList.add("loaded-skeleton-mode");
 
   if (animate) {
-    (rootElement as HTMLElement).classList.add("loaded-animate");
+    htmlRoot.classList.add("loaded-animate");
+  }
+
+  // Apply background class for standalone usage (when not used via SmartSkeleton JSX)
+  // If element has loaded-skeleton-wrapper, CSS handles bg via > :first-child rule
+  // If element already has loaded-skeleton-bg (from JSX), this is a no-op
+  const isWrapper = htmlRoot.classList.contains("loaded-skeleton-wrapper");
+  if (!isWrapper) {
+    htmlRoot.classList.add("loaded-skeleton-bg");
   }
 
   // Only add specific classes where needed (text, media, content)
@@ -384,16 +390,23 @@ export function SmartSkeleton({
   const elementProps = element.props as { className?: string };
   const existingClassName = elementProps.className ?? "";
 
-  const skeletonClasses = ["loaded-skeleton-mode", animate && "loaded-animate"]
+  // Base classes for skeleton mode
+  const baseClasses = ["loaded-skeleton-mode", animate && "loaded-animate"]
     .filter(Boolean)
     .join(" ");
 
-  // When wrapping, the wrapper gets the skeleton classes
-  // When not wrapping, merge with element's existing classes
-  const wrapperClassName = [skeletonClasses, className]
+  // When wrapping: wrapper gets mode + wrapper marker (no bg - it goes on child via ref)
+  const wrapperClassName = [baseClasses, "loaded-skeleton-wrapper", className]
     .filter(Boolean)
     .join(" ");
-  const mergedClassName = [existingClassName, skeletonClasses, className]
+
+  // When not wrapping: element gets mode + bg directly (for SSR)
+  const mergedClassName = [
+    existingClassName,
+    baseClasses,
+    "loaded-skeleton-bg",
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
 

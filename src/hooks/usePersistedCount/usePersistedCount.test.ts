@@ -24,7 +24,10 @@ describe("usePersistedCount", () => {
   });
 
   it("uses stored count when available", () => {
-    localStorage.setItem("loaded", JSON.stringify({ list: 5 }));
+    localStorage.setItem(
+      "react-loaded",
+      JSON.stringify({ v: 1, counts: { list: 5 } }),
+    );
 
     const { result } = renderHook(() =>
       usePersistedCount({
@@ -65,8 +68,9 @@ describe("usePersistedCount", () => {
     });
 
     await waitFor(() => {
-      const stored = JSON.parse(localStorage.getItem("loaded") ?? "{}");
-      expect(stored.list).toBe(7);
+      const stored = JSON.parse(localStorage.getItem("react-loaded") ?? "{}");
+      expect(stored.v).toBe(1);
+      expect(stored.counts.list).toBe(7);
     });
   });
 
@@ -98,7 +102,7 @@ describe("usePersistedCount", () => {
   });
 
   it("handles corrupted localStorage gracefully", () => {
-    localStorage.setItem("loaded", "invalid json {{{");
+    localStorage.setItem("react-loaded", "invalid json {{{");
 
     const { result } = renderHook(() =>
       usePersistedCount({
@@ -114,7 +118,10 @@ describe("usePersistedCount", () => {
   });
 
   it("handles non-numeric stored value gracefully", () => {
-    localStorage.setItem("loaded", JSON.stringify({ list: "not a number" }));
+    localStorage.setItem(
+      "react-loaded",
+      JSON.stringify({ v: 1, counts: { list: "not a number" } }),
+    );
 
     const { result } = renderHook(() =>
       usePersistedCount({
@@ -130,7 +137,10 @@ describe("usePersistedCount", () => {
   });
 
   it("clamps stored value to minCount", () => {
-    localStorage.setItem("loaded", JSON.stringify({ list: 1 }));
+    localStorage.setItem(
+      "react-loaded",
+      JSON.stringify({ v: 1, counts: { list: 1 } }),
+    );
 
     const { result } = renderHook(() =>
       usePersistedCount({
@@ -181,7 +191,7 @@ describe("usePersistedCount", () => {
     });
 
     await waitFor(() => {
-      const stored = localStorage.getItem("loaded");
+      const stored = localStorage.getItem("react-loaded");
       // Should not have persisted anything since no storageKey
       expect(stored).toBeNull();
     });
@@ -224,5 +234,27 @@ describe("usePersistedCount", () => {
     });
 
     setItemSpy.mockRestore();
+  });
+
+  it("reads legacy storage key and migrates to the versioned schema", async () => {
+    localStorage.setItem("loaded", JSON.stringify({ list: 5 }));
+
+    const { result } = renderHook(() =>
+      usePersistedCount({
+        loading: true,
+        storageKey: "list",
+        defaultCount: 3,
+        minCount: 1,
+        maxCount: 10,
+      }),
+    );
+
+    expect(result.current).toBe(5);
+
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem("react-loaded") ?? "{}");
+      expect(stored.v).toBe(1);
+      expect(stored.counts.list).toBe(5);
+    });
   });
 });

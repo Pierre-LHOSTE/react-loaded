@@ -200,6 +200,10 @@ Override CSS custom properties to match your design system:
 3. **Visual overlay:** Skeleton bars appear over text, media gets placeholder backgrounds
 4. **Transition:** When `loading` becomes `false`, your real component renders in place
 
+**SSR note:** React Loaded is primarily designed for client-side loading states (navigation/refetch).
+If you render skeletons during SSR, the full overlay (text widths, media/content classes) is applied on the client via refs.
+For best SSR results, ensure your skeleton `element` forwards `className` and `ref` to a DOM node.
+
 The skeleton preserves:
 - Exact dimensions and spacing
 - Text alignment (left, center, right)
@@ -248,7 +252,7 @@ The same seed always produces the same text widths, making skeleton output deter
 ## Notes
 
 - **React 18 and 19** are supported.
-- Persistence uses `localStorage` under the root key `loaded`.
+- Persistence uses `localStorage` under the root key `react-loaded` with a versioned schema.
 - In skeleton mode, the library applies CSS classes on the subtree. Components should accept `className` and ideally forward refs.
 - SSR: the library uses an isomorphic layout effect to avoid server warnings and keep hydration stable.
 

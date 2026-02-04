@@ -38,9 +38,14 @@
   opacity: 0 !important;
 }
 
-/* Main wrapper background */
-.loaded-skeleton-mode.loaded-skeleton-wrapper,
-.loaded-skeleton-mode .loaded-skeleton-wrapper {
+/* Main background for non-wrapper case (element has loaded-skeleton-bg directly) */
+.loaded-skeleton-mode.loaded-skeleton-bg,
+.loaded-skeleton-mode .loaded-skeleton-bg {
+  background-color: var(--loaded-bg-wrapper) !important;
+}
+
+/* Main background for wrapper case (applies to first child to preserve border-radius) */
+.loaded-skeleton-mode.loaded-skeleton-wrapper > :first-child {
   background-color: var(--loaded-bg-wrapper) !important;
 }
 

@@ -80,8 +80,10 @@ Comportement attendu:
 ## 5. Persistance du nombre (lists)
 
 - Le nombre est persiste uniquement si `storageKey` est fourni.
-- Le stockage utilise `localStorage` avec la cle racine `loaded`.
-- Valeur enregistree: `items.length` (clamp avec `minCount` et `maxCount` si fourni).
+- Le stockage utilise `localStorage` avec la cle racine `react-loaded`.
+- Format stocke (schema versionne):
+  - `{ v: 1, counts: Record<string, number> }`
+  - `counts[storageKey] = items.length` (clamp avec `minCount` et `maxCount` si fourni).
 - Si pas de `storageKey`, le nombre revient a `defaultCount` a chaque remount.
 - Warning en dev si `storageKey` est absent.
 
@@ -89,7 +91,7 @@ Comportement attendu:
 
 Classes appliquees en mode skeleton:
 
-- `loaded-skeleton-mode`, `loaded-skeleton-wrapper`, `loaded-skeleton-hidden`
+- `loaded-skeleton-mode`, `loaded-skeleton-wrapper`, `loaded-skeleton-bg`
 - `loaded-text-skeleton`, `loaded-skeleton-content`, `loaded-skeleton-media`
 - `loaded-animate` (animation)
 
