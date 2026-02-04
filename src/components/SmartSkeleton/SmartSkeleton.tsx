@@ -7,8 +7,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { SkeletonContext } from "../SkeletonContext/SkeletonContext";
 import { useIsomorphicLayoutEffect } from "../../utils/useIsomorphicLayoutEffect";
+import { SkeletonContext } from "../SkeletonContext/SkeletonContext";
 import "./SmartSkeleton.css";
 
 // Text width configuration (in ch units)
@@ -236,6 +236,9 @@ export function applySkeletonClasses(
     } else {
       // Interactive elements (buttons, inputs, etc.)
       htmlEl.classList.add("loaded-skeleton-content");
+      // Prevent keyboard focus / interaction while in skeleton mode.
+      // aria-hidden does not remove elements from the tab order.
+      htmlEl.setAttribute("tabindex", "-1");
     }
   };
 

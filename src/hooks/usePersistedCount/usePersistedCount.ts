@@ -78,7 +78,11 @@ export function usePersistedCount({
   }, [loading, currentCount, storageKey, minCount, maxCount]);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production" && !storageKey && !hasWarnedRef.current) {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      !storageKey &&
+      !hasWarnedRef.current
+    ) {
       console.warn(
         "[Loaded] SmartSkeletonList used without storageKey. " +
           "The count will reset on remount. Add a storageKey to persist across sessions.",

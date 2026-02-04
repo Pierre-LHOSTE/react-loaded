@@ -2,12 +2,12 @@
 
 ## 1. Surface publique et integration
 
-- Package: `loaded`.
+- Package: `react-loaded`.
 - Exports: composants React, hooks utilitaires et fichier CSS publie via `./style.css`.
 - Integration CSS (obligatoire pour le rendu):
 
 ```ts
-import "loaded/style.css";
+import "react-loaded/style.css";
 ```
 
 ## 2. Exportables (API publique)
