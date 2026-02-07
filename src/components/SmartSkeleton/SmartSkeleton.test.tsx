@@ -1,5 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { createRef, forwardRef, useImperativeHandle, useRef } from "react";
+import { Button } from "antd";
+import {
+  createRef,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from "react";
 import { describe, expect, it, vi } from "vitest";
 import { applySkeletonClasses, SmartSkeleton } from "./SmartSkeleton";
 
@@ -440,6 +447,263 @@ describe("SmartSkeleton", () => {
     await waitFor(() => {
       const span = screen.getByText("Native element pattern");
       expect(span).toHaveClass("loaded-text-skeleton");
+    });
+  });
+
+  it("handles React 19 ref-as-prop (no forwardRef) and forwards original ref", async () => {
+    let capturedNode: HTMLDivElement | null = null;
+    const originalRef = (node: HTMLDivElement | null) => {
+      capturedNode = node;
+    };
+
+    // React 19 style: ref is a regular prop, no forwardRef needed
+    function RefAsPropComponent({
+      ref,
+      children,
+    }: {
+      ref?: React.Ref<HTMLDivElement>;
+      children: React.ReactNode;
+    }) {
+      return (
+        <div ref={ref} data-testid="r19-ref">
+          {children}
+        </div>
+      );
+    }
+
+    render(
+      <SmartSkeleton
+        loading={true}
+        element={
+          <RefAsPropComponent ref={originalRef}>Content</RefAsPropComponent>
+        }
+      />,
+    );
+
+    await waitFor(() => {
+      // SmartSkeleton should NOT need a wrapper — ref should resolve to DOM
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      // Skeleton classes should be applied directly
+      const el = screen.getByTestId("r19-ref");
+      expect(el).toHaveClass("loaded-skeleton-mode");
+      // The original ref should have been forwarded
+      expect(capturedNode).toBeInstanceOf(HTMLDivElement);
+      expect(capturedNode?.dataset.testid).toBe("r19-ref");
+    });
+  });
+
+  it("handles delayed React 19 ref-as-prop callback without wrapper", async () => {
+    let capturedNode: HTMLDivElement | null = null;
+    const originalRef = (node: HTMLDivElement | null) => {
+      capturedNode = node;
+    };
+
+    function DelayedRefAsProp({
+      ref,
+      children,
+    }: {
+      ref?: React.Ref<HTMLDivElement>;
+      children: React.ReactNode;
+    }) {
+      const divRef = useRef<HTMLDivElement>(null);
+
+      useEffect(() => {
+        if (!ref) return;
+        if (typeof ref === "function") {
+          ref(divRef.current);
+          return () => {
+            ref(null);
+          };
+        }
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current =
+          divRef.current;
+        return () => {
+          (ref as React.MutableRefObject<HTMLDivElement | null>).current = null;
+        };
+      }, [ref]);
+
+      return (
+        <div ref={divRef} data-testid="r19-delayed-ref">
+          {children}
+        </div>
+      );
+    }
+
+    render(
+      <SmartSkeleton
+        loading={true}
+        element={
+          <DelayedRefAsProp ref={originalRef}>Delayed content</DelayedRefAsProp>
+        }
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      const el = screen.getByTestId("r19-delayed-ref");
+      expect(el).toHaveClass("loaded-skeleton-mode");
+      expect(capturedNode).toBeInstanceOf(HTMLDivElement);
+    });
+  });
+
+  it("does not add wrapper on parent rerender for same React 19 ref-as-prop component", async () => {
+    function RefAsPropStable({
+      ref,
+      label,
+    }: {
+      ref?: React.Ref<HTMLDivElement>;
+      label: string;
+    }) {
+      return (
+        <div ref={ref} data-testid="r19-stable-ref">
+          {label}
+        </div>
+      );
+    }
+
+    const { rerender } = render(
+      <SmartSkeleton
+        loading={true}
+        element={<RefAsPropStable label="first" />}
+        suppressRefWarning={true}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("r19-stable-ref")).toHaveClass(
+        "loaded-skeleton-mode",
+      );
+    });
+
+    rerender(
+      <SmartSkeleton
+        loading={true}
+        element={<RefAsPropStable label="second" />}
+        suppressRefWarning={true}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("r19-stable-ref")).toHaveTextContent("second");
+    });
+  });
+
+  it("does not add wrapper for React 19 ref-as-prop component rendering antd Button", async () => {
+    function AntdUserButton({
+      ref,
+      username,
+    }: {
+      ref?: React.Ref<HTMLButtonElement>;
+      username: string;
+    }) {
+      return (
+        <Button type="text" ref={ref}>
+          {username}
+        </Button>
+      );
+    }
+
+    render(
+      <SmartSkeleton
+        loading={true}
+        element={<AntdUserButton username="username" />}
+        suppressRefWarning={true}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button")).toBeInTheDocument();
+    });
+  });
+
+  it("retries direct ref attachment on next loading cycle for same component type", async () => {
+    function MaybeRefAsProp({
+      ref,
+      mode,
+    }: {
+      ref?: React.Ref<HTMLDivElement>;
+      mode: "ignore" | "forward";
+    }) {
+      return (
+        <div ref={mode === "forward" ? ref : undefined} data-testid={mode}>
+          Maybe ref
+        </div>
+      );
+    }
+
+    const { rerender } = render(
+      <SmartSkeleton
+        loading={true}
+        element={<MaybeRefAsProp mode="ignore" />}
+        suppressRefWarning={true}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).toBeInTheDocument();
+    });
+
+    rerender(
+      <SmartSkeleton loading={false} element={<MaybeRefAsProp mode="ignore" />}>
+        <div data-testid="loaded">Loaded</div>
+      </SmartSkeleton>,
+    );
+
+    expect(screen.getByTestId("loaded")).toBeInTheDocument();
+
+    rerender(
+      <SmartSkeleton
+        loading={true}
+        element={<MaybeRefAsProp mode="forward" />}
+        suppressRefWarning={true}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("forward")).toHaveClass("loaded-skeleton-mode");
+    });
+  });
+
+  it("falls back to wrapper when component ignores ref (like Storybook Story)", async () => {
+    // Simulates <Story /> — a component that renders children but ignores ref entirely
+    function StoryLike({ children }: { children?: React.ReactNode }) {
+      return <div data-testid="story-output">{children}</div>;
+    }
+
+    render(
+      <SmartSkeleton
+        loading={true}
+        element={<StoryLike>Card content</StoryLike>}
+        suppressRefWarning
+      />,
+    );
+
+    await waitFor(() => {
+      // A wrapper IS expected since StoryLike ignores the ref
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).toBeInTheDocument();
+      // But skeleton classes should still be applied via the wrapper's ref
+      const output = screen.getByTestId("story-output");
+      expect(output).toBeTruthy();
     });
   });
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.1] - 2026-02-07
+
+### Fixed
+
+- Improved React 19 ref handling for function components using `ref` as a prop (without unnecessary wrapper fallback).
+- Avoided `element.ref` access on React 19+ to prevent development warnings while preserving React 18 fallback behavior.
+- Made wrapper fallback detection more resilient when refs are attached later in the same tick.
+- Reset wrapper decision correctly across loading cycles and element identity changes (`type` / `key`).
+
+### Tests
+
+- Added coverage for React 19 ref-as-prop flows, delayed ref callbacks, rerender stability, and wrapper fallback retry behavior.
+- Added a real-world integration case with Ant Design `Button` and a Story-like component that ignores refs.
+
 ## [0.1.0] - 2026-02-04
 
 ### Added

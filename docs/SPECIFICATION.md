@@ -34,7 +34,7 @@ Props:
 - `animate?: boolean` (defaut: `true`)
   - Active l'animation shimmer.
 - `className?: string`
-  - Classes additionnelles appliquees au wrapper.
+  - Classes additionnelles appliquees au rendu skeleton (element direct ou wrapper auto selon le cas).
 - `seed?: string | number`
   - Seed stable pour l'aleatoire des largeurs de texte.
 - `suppressRefWarning?: boolean` (defaut: `false`)
@@ -42,9 +42,14 @@ Props:
 
 Comportement attendu:
 
+- Resolution de ref:
+  - React 19+: lecture prioritaire via `element.props.ref`.
+  - React 18: fallback via `element.ref`.
 - Si la ref DOM ne peut pas etre attachee:
   - Un wrapper DOM est ajoute automatiquement pour recuperer une ref.
   - Warning en dev pour signaler la modification de structure DOM, desactivable via `suppressRefWarning`.
+- La decision de fallback wrapper peut etre differee apres commit pour eviter les faux positifs quand une ref arrive legerement plus tard.
+- L'etat de fallback est reinitialise quand `loading` repasse a `false` ou quand l'identite de l'element change (`type` / `key`).
 
 ## 4. Composant SmartSkeletonList (API)
 
@@ -176,7 +181,7 @@ Ces notes servent a guider la mise a jour du projet sans modifier l'intention fo
 
 - La prop `wrapWhenNoRef` est supprimee (API nettoyee).
 - Le mode fallback "simple" et la classe `loaded-skeleton-simple` sont supprimes.
-- La ref est toujours obtenue via wrapper auto si l'attache directe echoue.
+- La ref est tentee en direct d'abord (React 19 `props.ref`, puis fallback React 18), avec wrapper auto uniquement en cas d'echec.
 - Le warning est emis uniquement quand le wrapper auto est applique (sauf `suppressRefWarning`).
 - Le skeleton n'apparait que si `loading` est `true` (defaut `false`).
 - Les lectures de layout/DOM (ex: `getComputedStyle`, `offsetHeight`, `querySelectorAll`) sont retirees.

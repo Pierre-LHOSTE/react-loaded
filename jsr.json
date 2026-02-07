@@ -1,9 +1,15 @@
 {
-  "name": "@vd/react-loaded",
-  "version": "0.1.0",
-  "exports": "./dist/index.js",
-  "publish": {
-    "include": ["README.md", "LICENSE", "dist/**/*"],
-    "exclude": ["!dist"]
-  }
+	"name": "@vd/react-loaded",
+	"version": "0.1.1",
+	"exports": "./dist/index.js",
+	"publish": {
+		"include": [
+			"README.md",
+			"LICENSE",
+			"dist/**/*"
+		],
+		"exclude": [
+			"!dist"
+		]
+	}
 }

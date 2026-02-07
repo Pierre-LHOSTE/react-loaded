@@ -212,7 +212,12 @@ The skeleton preserves:
 
 ## Ref Handling
 
-Components must forward refs for optimal rendering. If a component does not forward its ref, React Loaded automatically wraps it in a `div` and logs a development warning.
+React Loaded supports both React ref models:
+
+- **React 19+:** `ref` can be passed as a regular prop.
+- **React 18:** function components should use `forwardRef`.
+
+For best rendering, your skeleton `element` should expose a DOM ref. If it does not, React Loaded automatically wraps it in a `div` and logs a development warning.
 
 To suppress the warning:
 
@@ -223,7 +228,7 @@ To suppress the warning:
 />
 ```
 
-Or better, wrap third-party components:
+Or better, wrap third-party components so a DOM ref is always available:
 
 ```tsx
 const WrappedComponent = forwardRef((props, ref) => (
@@ -253,7 +258,7 @@ The same seed always produces the same text widths, making skeleton output deter
 
 - **React 18 and 19** are supported.
 - Persistence uses `localStorage` under the root key `react-loaded` with a versioned schema.
-- In skeleton mode, the library applies CSS classes on the subtree. Components should accept `className` and ideally forward refs.
+- In skeleton mode, the library applies CSS classes on the subtree. Components should accept `className` and expose a usable ref (React 19 `ref` prop or React 18 `forwardRef`).
 - Dev warnings are enabled when `NODE_ENV !== "production"`. If your environment doesn’t inject `NODE_ENV`, you can force them with `globalThis.__REACT_LOADED_DEV__ = true`.
 - SSR: the library uses an isomorphic layout effect to avoid server warnings and keep hydration stable.
 - JSR/Deno: CSS module imports aren’t supported. For Node/bundlers, import `react-loaded/style.css`. For Deno, you’ll need to copy the CSS into your app (or recreate the styles).

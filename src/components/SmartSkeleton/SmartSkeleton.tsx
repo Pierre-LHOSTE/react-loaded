@@ -2,6 +2,7 @@ import {
   cloneElement,
   type ReactElement,
   type Ref,
+  version as reactVersion,
   useCallback,
   useEffect,
   useRef,
@@ -68,6 +69,10 @@ function getElementDisplayName(element: ReactElement): string {
   return "<Unknown>";
 }
 
+const REACT_MAJOR_VERSION = Number.parseInt(reactVersion, 10);
+const IS_REACT_19_OR_NEWER =
+  Number.isFinite(REACT_MAJOR_VERSION) && REACT_MAJOR_VERSION >= 19;
+
 /**
  * Get the original ref from the element, supporting both React 18 and React 19.
  * React 19: ref is a regular prop on element.props.ref
@@ -75,12 +80,16 @@ function getElementDisplayName(element: ReactElement): string {
  */
 function getOriginalRef(element: ReactElement): Ref<unknown> | undefined {
   // React 19 style (ref as prop)
-  const propsRef = (element.props as { ref?: Ref<unknown> })?.ref;
-  if (propsRef) return propsRef;
+  const elementProps = element.props as { ref?: Ref<unknown> } | undefined;
+  const propsRef = elementProps?.ref;
+  if (propsRef !== undefined) return propsRef;
+
+  // React 19+ warns on element.ref access; skip legacy fallback entirely.
+  if (IS_REACT_19_OR_NEWER) return undefined;
 
   // React 18 style
   const legacyRef = (element as ReactElement & { ref?: Ref<unknown> }).ref;
-  if (legacyRef) return legacyRef;
+  if (legacyRef !== undefined) return legacyRef;
 
   return undefined;
 }
@@ -283,61 +292,94 @@ export function SmartSkeleton({
 }: SmartSkeletonProps): ReactElement | null {
   const hasAppliedRef = useRef(false);
   const refWasCalledRef = useRef(false);
-  const lastElementRef = useRef<ReactElement | null>(null);
+  const lastRefNodeRef = useRef<unknown>(null);
+  const deferredWrapperCheckTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const needsWrapperRef = useRef(false);
   const previousElementTypeRef = useRef<ReactElement["type"] | null>(null);
   const previousElementKeyRef = useRef<ReactElement["key"] | null>(null);
   const [needsWrapper, setNeedsWrapper] = useState(false);
+  needsWrapperRef.current = needsWrapper;
 
-  // Reset flags when loading changes or element changes
-  if (!loading || lastElementRef.current !== element) {
+  const currentElementType = element.type;
+  const currentElementKey = element.key ?? null;
+  const hasElementIdentityChanged =
+    previousElementTypeRef.current !== null &&
+    (previousElementTypeRef.current !== currentElementType ||
+      previousElementKeyRef.current !== currentElementKey);
+
+  // Reset tracking only when leaving loading mode or when element identity changes.
+  // Do not reset on every render: JSX creates a fresh ReactElement object each time.
+  if (!loading || hasElementIdentityChanged) {
     hasAppliedRef.current = false;
     refWasCalledRef.current = false;
-    lastElementRef.current = element;
+    lastRefNodeRef.current = null;
+    if (deferredWrapperCheckTimeoutRef.current !== null) {
+      clearTimeout(deferredWrapperCheckTimeoutRef.current);
+      deferredWrapperCheckTimeoutRef.current = null;
+    }
   }
 
-  useEffect(() => {
-    const elementType = element.type;
-    const elementKey = element.key ?? null;
-    const previousType = previousElementTypeRef.current;
-    const previousKey = previousElementKeyRef.current;
+  previousElementTypeRef.current = currentElementType;
+  previousElementKeyRef.current = currentElementKey;
 
-    if (
-      previousType !== null &&
-      (previousType !== elementType || previousKey !== elementKey)
-    ) {
+  useEffect(() => {
+    if (hasElementIdentityChanged && needsWrapper) {
       setNeedsWrapper(false);
     }
+  }, [hasElementIdentityChanged, needsWrapper]);
 
-    previousElementTypeRef.current = elementType;
-    previousElementKeyRef.current = elementKey;
-  }, [element.type, element.key]);
+  // Wrapper decision should be scoped to each loading cycle.
+  // Without this reset, a false positive can persist across loading=false -> true.
+  useEffect(() => {
+    if (!loading && needsWrapper) {
+      setNeedsWrapper(false);
+    }
+  }, [loading, needsWrapper]);
+
+  useEffect(() => {
+    return () => {
+      if (deferredWrapperCheckTimeoutRef.current !== null) {
+        clearTimeout(deferredWrapperCheckTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const originalRef = getOriginalRef(element);
 
-  const refCallback = useCallback(
-    (node: unknown) => {
-      refWasCalledRef.current = true;
+  const enableWrapperWithWarning = useCallback(
+    (reason: "non-dom-ref" | "no-ref-call") => {
+      if (needsWrapperRef.current) return;
+      setNeedsWrapper(true);
 
-      const target = resolveRefTarget(node);
-
-      // If we received a node but couldn't get a DOM element from it,
-      // we need to use a wrapper
-      if (node !== null && !target && !needsWrapper) {
-        setNeedsWrapper(true);
-
-        // Emit warning (deduplicated by component name)
-        if (!suppressRefWarning && isDevEnv()) {
-          const displayName = getElementDisplayName(element);
-          if (!warnedComponents.has(displayName)) {
+      if (!suppressRefWarning && isDevEnv()) {
+        const displayName = getElementDisplayName(element);
+        if (!warnedComponents.has(displayName)) {
+          if (reason === "non-dom-ref") {
             console.warn(
               `[SmartSkeleton] ${displayName} does not forward its ref to a DOM element. ` +
                 `A wrapper <div> has been added automatically. Use forwardRef to avoid this.`,
             );
-            warnedComponents.add(displayName);
+          } else {
+            console.warn(
+              `[SmartSkeleton] ${displayName} does not accept a ref. ` +
+                `A wrapper <div> has been added automatically. Use forwardRef to avoid this.`,
+            );
           }
+          warnedComponents.add(displayName);
         }
-        return;
       }
+    },
+    [element, suppressRefWarning],
+  );
+
+  const refCallback = useCallback(
+    (node: unknown) => {
+      refWasCalledRef.current = true;
+      lastRefNodeRef.current = node;
+
+      const target = resolveRefTarget(node);
 
       if (target && loading && !hasAppliedRef.current) {
         applySkeletonClasses(target, { animate, seed });
@@ -347,40 +389,64 @@ export function SmartSkeleton({
       // Forward ref to original element
       forwardRef(originalRef, node);
     },
-    [
-      loading,
-      element,
-      needsWrapper,
-      suppressRefWarning,
-      originalRef,
-      animate,
-      seed,
-    ],
+    [loading, originalRef, animate, seed],
   );
 
-  // Detect if ref was never called (component ignores ref entirely)
-  // useLayoutEffect runs synchronously after DOM mutations but before paint
+  // Decide wrapper fallback after commit to avoid eager false positives:
+  // some environments attach refs slightly later in the same tick.
   useIsomorphicLayoutEffect(() => {
     if (!loading || needsWrapper) return;
 
-    // At this point, React has already attempted to attach refs
-    // If refWasCalledRef is still false, the component ignored the ref
-    if (!refWasCalledRef.current) {
-      setNeedsWrapper(true);
-
-      // Emit warning
-      if (!suppressRefWarning && isDevEnv()) {
-        const displayName = getElementDisplayName(element);
-        if (!warnedComponents.has(displayName)) {
-          console.warn(
-            `[SmartSkeleton] ${displayName} does not accept a ref. ` +
-              `A wrapper <div> has been added automatically. Use forwardRef to avoid this.`,
-          );
-          warnedComponents.add(displayName);
-        }
-      }
+    if (deferredWrapperCheckTimeoutRef.current !== null) {
+      clearTimeout(deferredWrapperCheckTimeoutRef.current);
+      deferredWrapperCheckTimeoutRef.current = null;
     }
-  }, [loading, needsWrapper, element, suppressRefWarning]);
+
+    const node = lastRefNodeRef.current;
+    const target = resolveRefTarget(node);
+
+    if (target && !hasAppliedRef.current) {
+      applySkeletonClasses(target, { animate, seed });
+      hasAppliedRef.current = true;
+    }
+
+    if (refWasCalledRef.current) {
+      if (node !== null && !target) {
+        enableWrapperWithWarning("non-dom-ref");
+      }
+      return;
+    }
+
+    deferredWrapperCheckTimeoutRef.current = setTimeout(() => {
+      deferredWrapperCheckTimeoutRef.current = null;
+
+      if (!loading || needsWrapperRef.current) return;
+
+      const delayedNode = lastRefNodeRef.current;
+      const delayedTarget = resolveRefTarget(delayedNode);
+
+      if (delayedTarget && !hasAppliedRef.current) {
+        applySkeletonClasses(delayedTarget, { animate, seed });
+        hasAppliedRef.current = true;
+      }
+
+      if (refWasCalledRef.current) {
+        if (delayedNode !== null && !delayedTarget) {
+          enableWrapperWithWarning("non-dom-ref");
+        }
+        return;
+      }
+
+      enableWrapperWithWarning("no-ref-call");
+    }, 0);
+
+    return () => {
+      if (deferredWrapperCheckTimeoutRef.current !== null) {
+        clearTimeout(deferredWrapperCheckTimeoutRef.current);
+        deferredWrapperCheckTimeoutRef.current = null;
+      }
+    };
+  }, [loading, needsWrapper, animate, seed, enableWrapperWithWarning]);
 
   // Not loading: return children or null
   if (!loading) {
