@@ -297,54 +297,64 @@ export function SmartSkeleton({
     typeof setTimeout
   > | null>(null);
   const needsWrapperRef = useRef(false);
-  const previousElementTypeRef = useRef<ReactElement["type"] | null>(null);
-  const previousElementKeyRef = useRef<ReactElement["key"] | null>(null);
   const [needsWrapper, setNeedsWrapper] = useState(false);
-  needsWrapperRef.current = needsWrapper;
-
   const currentElementType = element.type;
   const currentElementKey = element.key ?? null;
-  const hasElementIdentityChanged =
-    previousElementTypeRef.current !== null &&
-    (previousElementTypeRef.current !== currentElementType ||
-      previousElementKeyRef.current !== currentElementKey);
+  const previousLoadingRef = useRef(loading);
+  const previousElementTypeRef =
+    useRef<ReactElement["type"]>(currentElementType);
+  const previousElementKeyRef = useRef<ReactElement["key"] | null>(
+    currentElementKey,
+  );
 
-  // Reset tracking only when leaving loading mode or when element identity changes.
-  // Do not reset on every render: JSX creates a fresh ReactElement object each time.
-  if (!loading || hasElementIdentityChanged) {
-    hasAppliedRef.current = false;
-    refWasCalledRef.current = false;
-    lastRefNodeRef.current = null;
+  const cancelDeferredWrapperCheck = useCallback(() => {
     if (deferredWrapperCheckTimeoutRef.current !== null) {
       clearTimeout(deferredWrapperCheckTimeoutRef.current);
       deferredWrapperCheckTimeoutRef.current = null;
     }
-  }
-
-  previousElementTypeRef.current = currentElementType;
-  previousElementKeyRef.current = currentElementKey;
+  }, []);
 
   useEffect(() => {
-    if (hasElementIdentityChanged && needsWrapper) {
-      setNeedsWrapper(false);
-    }
-  }, [hasElementIdentityChanged, needsWrapper]);
+    needsWrapperRef.current = needsWrapper;
+  }, [needsWrapper]);
 
-  // Wrapper decision should be scoped to each loading cycle.
-  // Without this reset, a false positive can persist across loading=false -> true.
-  useEffect(() => {
-    if (!loading && needsWrapper) {
-      setNeedsWrapper(false);
+  // Keep render pure: reset mutable tracking only after commit.
+  useIsomorphicLayoutEffect(() => {
+    const previousLoading = previousLoadingRef.current;
+    const previousElementType = previousElementTypeRef.current;
+    const previousElementKey = previousElementKeyRef.current;
+
+    const didExitLoading = previousLoading && !loading;
+    const hasElementIdentityChanged =
+      previousElementType !== currentElementType ||
+      previousElementKey !== currentElementKey;
+
+    if (didExitLoading || hasElementIdentityChanged) {
+      hasAppliedRef.current = false;
+      refWasCalledRef.current = false;
+      lastRefNodeRef.current = null;
+      cancelDeferredWrapperCheck();
+
+      if (needsWrapperRef.current) {
+        setNeedsWrapper(false);
+      }
     }
-  }, [loading, needsWrapper]);
+
+    previousLoadingRef.current = loading;
+    previousElementTypeRef.current = currentElementType;
+    previousElementKeyRef.current = currentElementKey;
+  }, [
+    loading,
+    currentElementType,
+    currentElementKey,
+    cancelDeferredWrapperCheck,
+  ]);
 
   useEffect(() => {
     return () => {
-      if (deferredWrapperCheckTimeoutRef.current !== null) {
-        clearTimeout(deferredWrapperCheckTimeoutRef.current);
-      }
+      cancelDeferredWrapperCheck();
     };
-  }, []);
+  }, [cancelDeferredWrapperCheck]);
 
   const originalRef = getOriginalRef(element);
 
@@ -397,10 +407,7 @@ export function SmartSkeleton({
   useIsomorphicLayoutEffect(() => {
     if (!loading || needsWrapper) return;
 
-    if (deferredWrapperCheckTimeoutRef.current !== null) {
-      clearTimeout(deferredWrapperCheckTimeoutRef.current);
-      deferredWrapperCheckTimeoutRef.current = null;
-    }
+    cancelDeferredWrapperCheck();
 
     const node = lastRefNodeRef.current;
     const target = resolveRefTarget(node);
@@ -441,12 +448,16 @@ export function SmartSkeleton({
     }, 0);
 
     return () => {
-      if (deferredWrapperCheckTimeoutRef.current !== null) {
-        clearTimeout(deferredWrapperCheckTimeoutRef.current);
-        deferredWrapperCheckTimeoutRef.current = null;
-      }
+      cancelDeferredWrapperCheck();
     };
-  }, [loading, needsWrapper, animate, seed, enableWrapperWithWarning]);
+  }, [
+    loading,
+    needsWrapper,
+    animate,
+    seed,
+    enableWrapperWithWarning,
+    cancelDeferredWrapperCheck,
+  ]);
 
   // Not loading: return children or null
   if (!loading) {

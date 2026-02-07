@@ -3,6 +3,7 @@ import { Button } from "antd";
 import {
   createRef,
   forwardRef,
+  StrictMode,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -595,6 +596,89 @@ describe("SmartSkeleton", () => {
         document.querySelector(".loaded-skeleton-wrapper"),
       ).not.toBeInTheDocument();
       expect(screen.getByTestId("r19-stable-ref")).toHaveTextContent("second");
+    });
+  });
+
+  it("keeps direct ref flow stable in StrictMode for React 19 ref-as-prop", async () => {
+    function StrictRefAsProp({
+      ref,
+      label,
+    }: {
+      ref?: React.Ref<HTMLDivElement>;
+      label: string;
+    }) {
+      return (
+        <div ref={ref} data-testid="r19-strict-ref">
+          {label}
+        </div>
+      );
+    }
+
+    render(
+      <StrictMode>
+        <SmartSkeleton
+          loading={true}
+          element={<StrictRefAsProp label="strict-mode" />}
+          suppressRefWarning={true}
+        />
+      </StrictMode>,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("r19-strict-ref")).toHaveClass(
+        "loaded-skeleton-mode",
+      );
+    });
+  });
+
+  it("cancels deferred wrapper fallback across a rapid loading toggle", async () => {
+    function ToggleRefAsProp({
+      ref,
+      mode,
+    }: {
+      ref?: React.Ref<HTMLDivElement>;
+      mode: "ignore" | "forward";
+    }) {
+      return (
+        <div ref={mode === "forward" ? ref : undefined} data-testid={mode}>
+          Toggle ref
+        </div>
+      );
+    }
+
+    const { rerender } = render(
+      <SmartSkeleton
+        loading={true}
+        element={<ToggleRefAsProp mode="ignore" />}
+        suppressRefWarning={true}
+      />,
+    );
+
+    rerender(
+      <SmartSkeleton
+        loading={false}
+        element={<ToggleRefAsProp mode="ignore" />}
+      >
+        <div data-testid="loaded-fast">Loaded</div>
+      </SmartSkeleton>,
+    );
+
+    rerender(
+      <SmartSkeleton
+        loading={true}
+        element={<ToggleRefAsProp mode="forward" />}
+        suppressRefWarning={true}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.querySelector(".loaded-skeleton-wrapper"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("forward")).toHaveClass("loaded-skeleton-mode");
     });
   });
 
