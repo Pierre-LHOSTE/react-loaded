@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.3] - 2026-02-08
+
+### Added
+
+- Added `variant` support on `SmartSkeleton` and `SmartSkeletonList` with `filled` (default) and `ghost` modes.
+- Exported `SmartSkeletonVariant` from the public entrypoint.
+
+### Changed
+
+- Simplified background switching logic: `filled` adds `loaded-skeleton-bg`, `ghost` removes it.
+- Kept wrapper fallback support while applying/removing background on the wrapped first child to preserve border radius behavior.
+
+### Tests
+
+- Added coverage for `ghost` mode and explicit wrapper behavior in both `filled` and `ghost` variants.
+
 ## [0.1.2] - 2026-02-08
 
 ### Changed

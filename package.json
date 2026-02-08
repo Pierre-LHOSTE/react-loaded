@@ -1,6 +1,6 @@
 {
 	"name": "react-loaded",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "Zero-layout-shift skeleton screens for React",
 	"homepage": "https://github.com/Pierre-LHOSTE/react-loaded#readme",
 	"repository": {
