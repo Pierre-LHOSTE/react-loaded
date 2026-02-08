@@ -110,7 +110,6 @@ export function applySkeletonClasses(
 	rootElement: Element,
 	options: { animate?: boolean; seed?: string | number } = {},
 ): void {
-	ensureCriticalCSS();
 	const { animate = true, seed } = options;
 	const baseSeed =
 		seed === undefined || seed === null ? "loaded" : String(seed);
