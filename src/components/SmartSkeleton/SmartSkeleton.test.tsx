@@ -40,12 +40,27 @@ describe("SmartSkeleton", () => {
 		expect(skeleton).toBeInTheDocument();
 		expect(skeleton).toHaveClass("loaded-skeleton-mode");
 		expect(skeleton).toHaveClass("loaded-animate");
+		expect(skeleton).toHaveClass("loaded-skeleton-bg");
 
 		const text = screen.getByTestId("skeleton-text");
 		const image = screen.getByTestId("skeleton-image");
 		expect(text).toHaveClass("loaded-text-skeleton");
 		expect(text).toHaveAttribute("data-skeleton-align", "left");
 		expect(image).toHaveClass("loaded-skeleton-media");
+	});
+
+	it("renders ghost variant without background class", () => {
+		render(
+			<SmartSkeleton
+				loading={true}
+				element={skeletonElement}
+				variant="ghost"
+			/>,
+		);
+
+		const skeleton = screen.getByTestId("skeleton");
+		expect(skeleton).toHaveClass("loaded-skeleton-mode");
+		expect(skeleton).not.toHaveClass("loaded-skeleton-bg");
 	});
 
 	it("does not add animate class when animate is false", () => {
@@ -206,6 +221,49 @@ describe("SmartSkeleton", () => {
 		warnSpy.mockRestore();
 	});
 
+	it("keeps wrapper in ghost mode without background class", async () => {
+		const NoDomRef = () => <span data-testid="ghost-child">Child</span>;
+
+		render(
+			<SmartSkeleton
+				loading={true}
+				element={<NoDomRef />}
+				variant="ghost"
+				suppressRefWarning={true}
+			/>,
+		);
+
+		await waitFor(() => {
+			const wrapper = document.querySelector(".loaded-skeleton-wrapper");
+			expect(wrapper).toBeInTheDocument();
+			expect(wrapper).not.toHaveClass("loaded-skeleton-bg");
+			expect(screen.getByTestId("ghost-child")).not.toHaveClass(
+				"loaded-skeleton-bg",
+			);
+		});
+	});
+
+	it("applies background class on wrapped child in filled mode", async () => {
+		const NoDomRef = () => <span data-testid="filled-child">Child</span>;
+
+		render(
+			<SmartSkeleton
+				loading={true}
+				element={<NoDomRef />}
+				suppressRefWarning={true}
+			/>,
+		);
+
+		await waitFor(() => {
+			const wrapper = document.querySelector(".loaded-skeleton-wrapper");
+			expect(wrapper).toBeInTheDocument();
+			expect(wrapper).not.toHaveClass("loaded-skeleton-bg");
+			expect(screen.getByTestId("filled-child")).toHaveClass(
+				"loaded-skeleton-bg",
+			);
+		});
+	});
+
 	it("does not warn when suppressRefWarning is true", async () => {
 		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -338,6 +396,24 @@ describe("SmartSkeleton", () => {
 		expect(text1?.style.getPropertyValue("--skeleton-text-width")).toBe(
 			text2?.style.getPropertyValue("--skeleton-text-width"),
 		);
+	});
+
+	it("applies filled variant by default in applySkeletonClasses", () => {
+		const root = document.createElement("div");
+		root.innerHTML = "<p>Default variant</p>";
+
+		applySkeletonClasses(root);
+
+		expect(root).toHaveClass("loaded-skeleton-bg");
+	});
+
+	it("supports ghost variant in applySkeletonClasses", () => {
+		const root = document.createElement("div");
+		root.innerHTML = "<p>Ghost variant</p>";
+
+		applySkeletonClasses(root, { variant: "ghost" });
+
+		expect(root).not.toHaveClass("loaded-skeleton-bg");
 	});
 
 	it("handles text-align: end as right alignment", () => {

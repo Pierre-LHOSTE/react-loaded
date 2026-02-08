@@ -48,11 +48,6 @@
 	background-color: var(--loaded-bg-wrapper) !important;
 }
 
-/* Main background for wrapper case (applies to first child to preserve border-radius) */
-.loaded-skeleton-mode.loaded-skeleton-wrapper > :first-child {
-	background-color: var(--loaded-bg-wrapper) !important;
-}
-
 /* Content elements (buttons, inputs, etc.) */
 .loaded-skeleton-mode .loaded-skeleton-content {
 	background-color: var(--loaded-bg-content) !important;

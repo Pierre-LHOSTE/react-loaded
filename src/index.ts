@@ -6,6 +6,7 @@ export {
 export {
 	SmartSkeleton,
 	type SmartSkeletonProps,
+	type SmartSkeletonVariant,
 } from "./components/SmartSkeleton/SmartSkeleton";
 
 export {

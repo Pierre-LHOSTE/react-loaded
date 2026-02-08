@@ -21,6 +21,8 @@ export { applySkeletonClasses } from "./applySkeletonClasses";
 
 const warnedComponents = new Set<string>();
 
+export type SmartSkeletonVariant = "filled" | "ghost";
+
 export interface SmartSkeletonProps {
 	/** The skeleton element with mock data, rendered when loading */
 	element: ReactElement;
@@ -34,6 +36,8 @@ export interface SmartSkeletonProps {
 	className?: string;
 	/** Optional seed to stabilize skeleton text widths */
 	seed?: string | number;
+	/** Visual variant for skeleton surface. `filled` adds a background, `ghost` does not. Default: "filled" */
+	variant?: SmartSkeletonVariant;
 	/** Suppress warning when auto-wrapper is applied. Default: false */
 	suppressRefWarning?: boolean;
 }
@@ -45,6 +49,7 @@ export function SmartSkeleton({
 	animate = true,
 	className = "",
 	seed,
+	variant = "filled",
 	suppressRefWarning = false,
 }: SmartSkeletonProps): ReactElement | null {
 	const currentElementType = element.type;
@@ -103,14 +108,14 @@ export function SmartSkeleton({
 			const target = resolveRefTarget(node);
 
 			if (target && loading && !hasAppliedRef.current) {
-				applySkeletonClasses(target, { animate, seed });
+				applySkeletonClasses(target, { animate, seed, variant });
 				hasAppliedRef.current = true;
 			}
 
 			// Forward ref to original element
 			forwardRef(originalRef, node);
 		},
-		[loading, originalRef, animate, seed],
+		[loading, originalRef, animate, seed, variant],
 	);
 
 	// Single layout effect: handles identity reset AND wrapper fallback decision.
@@ -155,7 +160,7 @@ export function SmartSkeleton({
 		const target = resolveRefTarget(node);
 
 		if (target && !hasAppliedRef.current) {
-			applySkeletonClasses(target, { animate, seed });
+			applySkeletonClasses(target, { animate, seed, variant });
 			hasAppliedRef.current = true;
 		}
 
@@ -182,6 +187,7 @@ export function SmartSkeleton({
 		currentElementKey,
 		animate,
 		seed,
+		variant,
 		enableWrapperWithWarning,
 		setWrapperState,
 	]);
@@ -199,6 +205,7 @@ export function SmartSkeleton({
 	const baseClasses = ["loaded-skeleton-mode", animate && "loaded-animate"]
 		.filter(Boolean)
 		.join(" ");
+	const filledOnlyClass = variant === "filled" ? "loaded-skeleton-bg" : "";
 
 	// When wrapping: wrapper gets mode + wrapper marker (no bg - it goes on child via ref)
 	const wrapperClassName = [baseClasses, "loaded-skeleton-wrapper", className]
@@ -209,7 +216,7 @@ export function SmartSkeleton({
 	const mergedClassName = [
 		existingClassName,
 		baseClasses,
-		"loaded-skeleton-bg",
+		filledOnlyClass,
 		className,
 	]
 		.filter(Boolean)

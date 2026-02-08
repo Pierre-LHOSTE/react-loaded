@@ -108,9 +108,13 @@ function resolveTextAlign(el: HTMLElement): "left" | "center" | "right" {
 
 export function applySkeletonClasses(
 	rootElement: Element,
-	options: { animate?: boolean; seed?: string | number } = {},
+	options: {
+		animate?: boolean;
+		seed?: string | number;
+		variant?: "filled" | "ghost";
+	} = {},
 ): void {
-	const { animate = true, seed } = options;
+	const { animate = true, seed, variant = "filled" } = options;
 	const baseSeed =
 		seed === undefined || seed === null ? "loaded" : String(seed);
 
@@ -125,14 +129,27 @@ export function applySkeletonClasses(
 
 	if (animate) {
 		htmlRoot.classList.add("loaded-animate");
+	} else {
+		htmlRoot.classList.remove("loaded-animate");
 	}
 
-	// Apply background class for standalone usage (when not used via SmartSkeleton JSX)
-	// If element has loaded-skeleton-wrapper, CSS handles bg via > :first-child rule
-	// If element already has loaded-skeleton-bg (from JSX), this is a no-op
+	// Apply background class for standalone usage.
+	// Wrapper mode targets first child to preserve border-radius from user content.
 	const isWrapper = htmlRoot.classList.contains("loaded-skeleton-wrapper");
 	if (!isWrapper) {
-		htmlRoot.classList.add("loaded-skeleton-bg");
+		if (variant === "filled") {
+			htmlRoot.classList.add("loaded-skeleton-bg");
+		} else {
+			htmlRoot.classList.remove("loaded-skeleton-bg");
+		}
+	} else {
+		const firstChild = htmlRoot.firstElementChild as HTMLElement | null;
+		if (firstChild && variant === "filled") {
+			firstChild.classList.add("loaded-skeleton-bg");
+		} else if (firstChild) {
+			firstChild.classList.remove("loaded-skeleton-bg");
+		}
+		htmlRoot.classList.remove("loaded-skeleton-bg");
 	}
 
 	// Only add specific classes where needed (text, media, content)

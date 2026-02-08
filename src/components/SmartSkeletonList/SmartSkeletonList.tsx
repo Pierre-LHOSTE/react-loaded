@@ -1,6 +1,9 @@
 import { Fragment, type ReactElement } from "react";
 import { usePersistedCount } from "../../hooks/usePersistedCount/usePersistedCount";
-import { SmartSkeleton } from "../SmartSkeleton/SmartSkeleton";
+import {
+	SmartSkeleton,
+	type SmartSkeletonVariant,
+} from "../SmartSkeleton/SmartSkeleton";
 
 export interface SmartSkeletonListProps<T> {
 	/** Whether the list is currently loading. Default: false */
@@ -23,6 +26,8 @@ export interface SmartSkeletonListProps<T> {
 	animate?: boolean;
 	/** Optional seed to stabilize skeleton text widths */
 	seed?: string | number;
+	/** Visual variant for skeleton surface. `filled` adds a background, `ghost` does not. Default: "filled" */
+	variant?: SmartSkeletonVariant;
 	/** Suppress warning when auto-wrapper is applied. Default: false */
 	suppressRefWarning?: boolean;
 	/** Extract unique key for each item. Default: index */
@@ -40,6 +45,7 @@ export function SmartSkeletonList<T>({
 	maxCount,
 	animate = true,
 	seed,
+	variant = "filled",
 	suppressRefWarning = false,
 	keyExtractor = (_, index) => index,
 }: SmartSkeletonListProps<T>): ReactElement | null {
@@ -63,6 +69,7 @@ export function SmartSkeletonList<T>({
 					element={renderSkeleton(index)}
 					animate={animate}
 					seed={itemSeed}
+					variant={variant}
 					suppressRefWarning={suppressRefWarning}
 				/>
 			);

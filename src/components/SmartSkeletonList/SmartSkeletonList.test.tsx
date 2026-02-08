@@ -44,6 +44,23 @@ describe("SmartSkeletonList", () => {
 		expect(screen.getAllByTestId("skeleton-item")).toHaveLength(2);
 	});
 
+	it("passes ghost variant to list skeleton items", () => {
+		render(
+			<SmartSkeletonList
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				defaultCount={1}
+				variant="ghost"
+				storageKey="smart-skeleton-list-ghost"
+			/>,
+		);
+
+		const skeleton = screen.getByTestId("skeleton-item");
+		expect(skeleton).not.toHaveClass("loaded-skeleton-bg");
+	});
+
 	it("clamps skeleton count by maxCount", () => {
 		render(
 			<SmartSkeletonList

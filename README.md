@@ -110,6 +110,7 @@ Wraps a single component to display it in skeleton mode while loading.
 | `children` | `ReactElement` | - | The real content when loaded. Returns `null` if omitted |
 | `loading` | `boolean` | `false` | Whether to show the skeleton |
 | `animate` | `boolean` | `true` | Enable shimmer animation |
+| `variant` | `"filled" \| "ghost"` | `"filled"` | Skeleton background style (`ghost` disables wrapper/card background) |
 | `className` | `string` | - | Additional CSS classes |
 | `seed` | `string \| number` | - | Stable seed for text width randomness |
 | `suppressRefWarning` | `boolean` | `false` | Suppress console warning when auto-wrapper is needed |
@@ -129,6 +130,7 @@ Renders a list with skeleton placeholders and optional count persistence.
 | `minCount` | `number` | `1` | Minimum skeletons to display |
 | `maxCount` | `number` | - | Maximum skeletons to display |
 | `animate` | `boolean` | `true` | Enable shimmer animation |
+| `variant` | `"filled" \| "ghost"` | `"filled"` | Skeleton background style for each list placeholder |
 | `seed` | `string \| number` | - | Stable seed for text width randomness |
 | `suppressRefWarning` | `boolean` | `false` | Suppress console warning when auto-wrapper is needed |
 | `keyExtractor` | `(item: T, index: number) => string | number` | `index` | Extract unique key for each item |
