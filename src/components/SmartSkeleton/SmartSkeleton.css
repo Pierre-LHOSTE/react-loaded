@@ -1,127 +1,132 @@
 :root {
-  --loaded-bg-wrapper: rgba(229, 231, 235, 1);
-  --loaded-bg-content: rgba(156, 163, 175, 0.6);
-  --loaded-border-radius: 4px;
-  --loaded-text-inset: 0.3em;
+	--loaded-bg-wrapper: rgba(229, 231, 235, 1);
+	--loaded-bg-content: rgba(156, 163, 175, 0.6);
+	--loaded-border-radius: 4px;
+	--loaded-text-inset: 0.3em;
 }
 
 .loaded-skeleton-mode {
-  user-select: none;
-  pointer-events: none;
+	user-select: none;
+	pointer-events: none;
 }
 
 /* Base styles applied to ALL elements inside skeleton via CSS selector */
 .loaded-skeleton-mode,
 .loaded-skeleton-mode * {
-  color: transparent !important;
-  background-color: transparent !important;
-  border-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
+	color: transparent !important;
+	background-color: transparent !important;
+	border-color: transparent !important;
+	background-image: none !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
+}
+
+.loaded-skeleton-mode img {
+	object-position: -9999px -9999px !important;
 }
 
 /* Reset pseudo-elements */
 .loaded-skeleton-mode *::before,
 .loaded-skeleton-mode *::after {
-  background: transparent !important;
-  background-image: none !important;
-  color: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
+	background: transparent !important;
+	background-image: none !important;
+	color: transparent !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
 }
 
 /* Hide input placeholders during skeleton */
 .loaded-skeleton-mode ::placeholder {
-  color: transparent !important;
-  opacity: 0 !important;
+	color: transparent !important;
+	opacity: 0 !important;
 }
 
 /* Main background for non-wrapper case (element has loaded-skeleton-bg directly) */
 .loaded-skeleton-mode.loaded-skeleton-bg,
 .loaded-skeleton-mode .loaded-skeleton-bg {
-  background-color: var(--loaded-bg-wrapper) !important;
+	background-color: var(--loaded-bg-wrapper) !important;
 }
 
 /* Main background for wrapper case (applies to first child to preserve border-radius) */
 .loaded-skeleton-mode.loaded-skeleton-wrapper > :first-child {
-  background-color: var(--loaded-bg-wrapper) !important;
+	background-color: var(--loaded-bg-wrapper) !important;
 }
 
 /* Content elements (buttons, inputs, etc.) */
 .loaded-skeleton-mode .loaded-skeleton-content {
-  background-color: var(--loaded-bg-content) !important;
+	background-color: var(--loaded-bg-content) !important;
 }
 
 /* Text skeleton with pseudo-element */
 .loaded-skeleton-mode .loaded-text-skeleton {
-  position: relative;
-  background-color: transparent !important;
+	position: relative;
+	background-color: transparent !important;
 }
 
 /* Text skeleton bar drawn via pseudo-element */
 .loaded-skeleton-mode .loaded-text-skeleton::before {
-  content: "" !important;
-  position: absolute !important;
-  left: 0 !important;
-  width: var(--skeleton-text-width, 100%) !important;
-  max-width: 90% !important;
-  top: var(--loaded-text-inset) !important;
-  bottom: var(--loaded-text-inset) !important;
-  background: var(--loaded-bg-content) !important;
-  background-image: none !important;
-  border-radius: var(--loaded-border-radius) !important;
-  pointer-events: none !important;
-  transform: none !important;
+	content: "" !important;
+	position: absolute !important;
+	left: 0 !important;
+	width: var(--skeleton-text-width, 100%) !important;
+	max-width: 90% !important;
+	top: var(--loaded-text-inset) !important;
+	bottom: var(--loaded-text-inset) !important;
+	background: var(--loaded-bg-content) !important;
+	background-image: none !important;
+	border-radius: var(--loaded-border-radius) !important;
+	pointer-events: none !important;
+	transform: none !important;
 }
 
 .loaded-skeleton-mode
-  .loaded-text-skeleton[data-skeleton-align="center"]::before {
-  left: 50% !important;
-  transform: translateX(-50%) !important;
+	.loaded-text-skeleton[data-skeleton-align="center"]::before {
+	left: 50% !important;
+	transform: translateX(-50%) !important;
 }
 
 .loaded-skeleton-mode
-  .loaded-text-skeleton[data-skeleton-align="right"]::before {
-  left: auto !important;
-  right: 0 !important;
+	.loaded-text-skeleton[data-skeleton-align="right"]::before {
+	left: auto !important;
+	right: 0 !important;
 }
 
 /* Media elements (images, videos, etc.) */
 .loaded-skeleton-mode .loaded-skeleton-media {
-  background-color: var(--loaded-bg-content) !important;
-  opacity: 1 !important;
+	background-color: var(--loaded-bg-content) !important;
+	opacity: 1 !important;
 }
 
 /* SVG elements rendered as rounded blocks */
 .loaded-skeleton-mode .loaded-skeleton-svg {
-  background-color: var(--loaded-bg-content) !important;
-  border-radius: 50% !important;
+	background-color: var(--loaded-bg-content) !important;
+	border-radius: 50% !important;
 }
 
 /* Hide SVG internal content (paths, circles, etc.) */
 .loaded-skeleton-mode .loaded-skeleton-svg * {
-  visibility: hidden !important;
+	visibility: hidden !important;
 }
 
-.loaded-skeleton-mode img.loaded-skeleton-media {
-  object-position: -9999px -9999px !important;
+.loaded-skeleton-mode .loaded-skeleton-force-hide {
+	opacity: 0 !important;
+	visibility: hidden !important;
 }
 
 /* Animation */
 @keyframes loaded-shimmer {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-  100% {
-    opacity: 1;
-  }
+	0% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.6;
+	}
+	100% {
+		opacity: 1;
+	}
 }
 
 .loaded-skeleton-mode.loaded-animate {
-  animation: loaded-shimmer 1.5s ease-in-out infinite;
+	animation: loaded-shimmer 1.5s ease-in-out infinite;
 }

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.2] - 2026-02-08
+
+### Changed
+
+- Refactored `SmartSkeleton` internals into focused modules: `applySkeletonClasses.ts` and `refUtils.ts`.
+- Removed deferred wrapper detection (`setTimeout`) and kept fallback decisions synchronous in layout effects.
+
+### Fixed
+
+- Force-hide descendants inside button-like elements (`button`, inputs, links, `role="button"`) to prevent inner content flashes.
+- Improved wrapper fallback behavior during element identity changes and ref cleanup (`ref(null)`) transitions.
+
+### Tests
+
+- Expanded coverage for React 19 `props.ref` usage (without destructuring), `memo(forwardRef(...))`, and loading-time component swaps between ref-compatible and no-ref components.
+
 ## [0.1.1] - 2026-02-07
 
 ### Fixed
