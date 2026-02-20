@@ -1,9 +1,8 @@
 node_modules
-dist
+dist/
 *.log
 .DS_Store
 .benchmarks
 coverage
-storybook-static
 .artifacts
 *.tgz

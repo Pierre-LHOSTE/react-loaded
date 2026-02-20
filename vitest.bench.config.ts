@@ -1,14 +1,14 @@
-import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  test: {
-    include: ["src/perf/**/*.bench.tsx"],
-    browser: {
-      enabled: true,
-      headless: true,
-      provider: playwright({}),
-      instances: [{ browser: "chromium" }],
-    },
-  },
+	test: {
+		include: ["src/perf/**/*.bench.tsx"],
+		browser: {
+			enabled: true,
+			headless: true,
+			provider: playwright({}),
+			instances: [{ browser: "chromium" }],
+		},
+	},
 });

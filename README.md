@@ -2,32 +2,35 @@
 
 > Loading should feel loaded before it actually loads.
 
-Smart skeleton screens that mirror your actual components. No layout shift. No visual jumps.
-
+Build-time skeleton generation that captures your real DOM and produces zero-runtime-cost skeleton components.
 
 ## The Problem
 
 Traditional skeleton screens create a disconnect between loading and loaded states:
 
 - Generic gray boxes do not match your actual UI
-- Lists show arbitrary counts (3 skeletons -> 47 items = jarring jump)
 - Building custom skeletons for every component is tedious and fragile
+- Lists show arbitrary counts (3 skeletons -> 47 items = jarring jump)
+- Runtime skeleton approaches add overhead and break SSR
 
 ## The Solution
 
-**React Loaded** renders your real components in "skeleton mode" using CSS masking. The skeleton is your component, just with content hidden. This guarantees:
+**React Loaded** captures your rendered components at development time and generates static skeleton components. This guarantees:
 
-- **Zero layout shift** between loading and loaded states
-- **Pixel-perfect structure** that matches the final render
-- **Persistent list counts** that remember how many items to show
+- **Zero runtime cost** — skeletons are pre-generated React components
+- **SSR-ready** — works out of the box with server-side rendering
+- **Pixel-perfect fidelity** — captures real DOM structure, styles, and proportions
+- **Persistent list counts** — remembers how many items to show across sessions
 
 ## Installation
+
+**Requirements:** React 18 or 19, React DOM 18 or 19.
 
 ```bash
 pnpm add react-loaded
 ```
 
-Required: import the stylesheet once in your app:
+Import the stylesheet once in your app:
 
 ```tsx
 import "react-loaded/style.css";
@@ -38,232 +41,276 @@ import "react-loaded/style.css";
 ### Single Component
 
 ```tsx
-import { SmartSkeleton } from "react-loaded";
+import { AutoSkeleton, LoadedProvider } from "react-loaded";
+import { registry } from "./generated/skeletons/registry";
 
-function UserProfile({ userId }) {
-  const { data: user, isLoading } = useQuery(["user", userId], fetchUser);
+function App() {
+  const { data: user, isLoading } = useQuery(["user"], fetchUser);
 
   return (
-    <SmartSkeleton
-      loading={isLoading}
-      element={<ProfileCard user={{ name: "Loading...", avatar: "" }} />}
-    >
-      <ProfileCard user={user} />
-    </SmartSkeleton>
+    <LoadedProvider registry={registry}>
+      <AutoSkeleton id="user-card" loading={isLoading}>
+        <UserCard
+          name={user?.name ?? "Placeholder Name"}
+          avatar={user?.avatar ?? ""}
+          bio={user?.bio ?? "Placeholder bio text here."}
+        />
+      </AutoSkeleton>
+    </LoadedProvider>
   );
 }
 ```
 
-Or with conditional rendering:
+### List
 
 ```tsx
-if (isLoading) {
-  return (
-    <SmartSkeleton
-      loading
-      element={<ProfileCard user={{ name: "Loading...", avatar: "" }} />}
-    />
-  );
-}
+import { AutoSkeletonList, LoadedProvider } from "react-loaded";
+import { registry } from "./generated/skeletons/registry";
 
-return <ProfileCard user={user} />;
-```
-
-### Lists with Persistence
-
-```tsx
-import { SmartSkeletonList } from "react-loaded";
-
-function ProductList() {
-  const { data: products, isLoading } = useQuery(["products"], fetchProducts);
+function NotificationFeed() {
+  const { data: items, isLoading } = useQuery(["notifications"], fetchNotifs);
 
   return (
-    <SmartSkeletonList
-      loading={isLoading}
-      items={products}
-      storageKey="product-list"
-      defaultCount={6}
-      renderItem={(product) => <ProductCard product={product} />}
-      renderSkeleton={(index) => (
-        <ProductCard product={{ id: index, name: "Product", price: 0 }} />
-      )}
-      keyExtractor={(product) => product.id}
-    />
+    <LoadedProvider registry={registry}>
+      <AutoSkeletonList
+        id="notification-item"
+        loading={isLoading}
+        items={items}
+        renderItem={(item) => <NotificationItem {...item} />}
+        renderSkeleton={(index) => (
+          <NotificationItem
+            title="Loading..."
+            description="Placeholder"
+            time="--"
+          />
+        )}
+        storageKey="notification-count"
+      />
+    </LoadedProvider>
   );
 }
 ```
 
-**How persistence works:**
-1. First visit: shows `defaultCount` skeletons (6)
-2. Data loads: renders 42 products, saves count to localStorage
-3. Next visit: shows 42 skeletons -> loads 42 products -> no jump
+## Next.js Integration (SSR with Cookie Persistence)
 
-## API Reference
+For Next.js apps, **React Loaded** provides seamless SSR support with cookie-based snapshot persistence. This eliminates layout shift on first render by pre-rendering skeletons with the correct dimensions server-side.
 
-### `<SmartSkeleton>`
+### Setup
 
-Wraps a single component to display it in skeleton mode while loading.
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `element` | `ReactElement` | *required* | The skeleton version with mock or placeholder data |
-| `children` | `ReactElement` | - | The real content when loaded. Returns `null` if omitted |
-| `loading` | `boolean` | `false` | Whether to show the skeleton |
-| `animate` | `boolean` | `true` | Enable shimmer animation |
-| `variant` | `"filled" \| "ghost"` | `"filled"` | Skeleton background style (`ghost` disables wrapper/card background) |
-| `className` | `string` | - | Additional CSS classes |
-| `seed` | `string \| number` | - | Stable seed for text width randomness |
-| `suppressRefWarning` | `boolean` | `false` | Suppress console warning when auto-wrapper is needed |
-
-### `<SmartSkeletonList>`
-
-Renders a list with skeleton placeholders and optional count persistence.
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `items` | `T[] | undefined` | *required* | Array of items, `undefined` while loading |
-| `renderItem` | `(item: T, index: number) => ReactElement` | *required* | Render function for loaded items |
-| `renderSkeleton` | `(index: number) => ReactElement` | *required* | Render function for skeleton placeholders |
-| `loading` | `boolean` | `false` | Whether to show skeletons |
-| `storageKey` | `string` | - | localStorage key for count persistence |
-| `defaultCount` | `number` | `3` | Initial skeleton count |
-| `minCount` | `number` | `1` | Minimum skeletons to display |
-| `maxCount` | `number` | - | Maximum skeletons to display |
-| `animate` | `boolean` | `true` | Enable shimmer animation |
-| `variant` | `"filled" \| "ghost"` | `"filled"` | Skeleton background style for each list placeholder |
-| `seed` | `string \| number` | - | Stable seed for text width randomness |
-| `suppressRefWarning` | `boolean` | `false` | Suppress console warning when auto-wrapper is needed |
-| `keyExtractor` | `(item: T, index: number) => string | number` | `index` | Extract unique key for each item |
-
-### `useIsSkeletonMode()`
-
-Hook to detect if a component is rendered inside a skeleton.
+**1. Create a client component wrapper** (`app/providers.tsx`):
 
 ```tsx
-import { useIsSkeletonMode } from "react-loaded";
+"use client";
+import { LoadedProvider } from "react-loaded";
+import { SkeletonCookieSync } from "react-loaded/next/client";
+import { registry } from "@/generated/skeletons/registry";
+import type { PersistedSkeletonSnapshot } from "react-loaded";
 
-function Avatar({ src }) {
-  const isSkeleton = useIsSkeletonMode();
-
-  // Skip expensive operations during skeleton render
-  if (isSkeleton) {
-    return <div className="avatar-placeholder" />;
-  }
-
-  return <img src={src} onLoad={trackAnalytics} />;
+export function SkeletonProviders({
+  children,
+  snapshot,
+}: {
+  children: React.ReactNode;
+  snapshot: PersistedSkeletonSnapshot;
+}) {
+  return (
+    <LoadedProvider registry={registry} persistedSnapshot={snapshot}>
+      <SkeletonCookieSync />
+      {children}
+    </LoadedProvider>
+  );
 }
 ```
 
-### `usePersistedCount()`
-
-Low-level hook for custom persistence logic.
+**2. Use it in your root layout** (`app/layout.tsx`):
 
 ```tsx
-import { usePersistedCount } from "react-loaded";
+import { getServerSnapshot } from "react-loaded/next";
+import { SkeletonProviders } from "./providers";
+import "react-loaded/style.css";
 
-const count = usePersistedCount({
-  storageKey: "my-list",
-  defaultCount: 5,
-  currentCount: items?.length,
-  loading: isLoading,
-  minCount: 1,
-  maxCount: 20,
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const snapshot = await getServerSnapshot();
+
+  return (
+    <html lang="en">
+      <body>
+        <SkeletonProviders snapshot={snapshot}>
+          {children}
+        </SkeletonProviders>
+      </body>
+    </html>
+  );
+}
+```
+
+### How it Works
+
+1. **Client-side measurement**: When your app loads, `AutoSkeleton` and `AutoSkeletonList` measure text widths, item counts, and distributions. These values are saved to `localStorage`.
+
+2. **Cookie synchronization**: `SkeletonCookieSync` automatically copies the snapshot from `localStorage` to a cookie (`react-loaded-snapshot`) on every update.
+
+3. **Server-side rendering**: On the next page load, `getServerSnapshot()` reads the cookie server-side and passes the snapshot to `LoadedProvider`. Skeletons render immediately with the correct dimensions—no flash, no layout shift.
+
+### API
+
+#### `getServerSnapshot(options?)`
+
+Reads the persisted snapshot from cookies (server-side only).
+
+**Options:**
+- `cookieName?: string` — Custom cookie name (default: `"react-loaded-snapshot"`)
+
+**Returns:** `Promise<PersistedSkeletonSnapshot>`
+
+#### `<SkeletonCookieSync>`
+
+Client component that syncs `localStorage` to cookies. Renders nothing.
+
+**Props:**
+- `options?: { cookieName?: string, path?: string, maxAge?: number, compact?: CompactOptions }`
+
+**Compact options** (to reduce cookie size):
+- `maxSkeletons?: number` — Limit number of skeleton IDs (default: `20`)
+- `maxTextKeysPerSkeleton?: number` — Limit text keys per skeleton (default: `10`)
+- `decimals?: number` — Round measurements to N decimals (default: `1`)
+
+### Import Paths
+
+- `react-loaded/next` — Server-side utilities (`getServerSnapshot`)
+- `react-loaded/next/client` — Client-side utilities (`SkeletonCookieSync`)
+
+> **Why separate imports?** Next.js requires strict separation between server and client code. `react-loaded/next` imports `next/headers` (server-only), so it cannot be imported by client components.
+
+## CLI Usage
+
+The `autoskeleton` CLI runs an HTTP server that listens for captures from your dev environment and generates skeleton components.
+
+```bash
+# Start the capture server
+npx autoskeleton dev
+
+# Start with a custom config file
+npx autoskeleton dev --config ./custom-config.ts
+
+# Reset all generated skeletons
+npx autoskeleton reset
+```
+
+### Configuration
+
+Create a `react-loaded.config.ts` (or `.js` / `.mjs`) at your project root:
+
+```ts
+import { defineConfig } from "react-loaded";
+
+export default defineConfig({
+  port: 7331,                                    // default: 7331
+  outDir: "src/generated/skeletons",              // default: src/generated/skeletons
+  allowedHosts: ["localhost", "127.0.0.1", "::1"] // default: localhost, 127.0.0.1, ::1
 });
 ```
 
-## Customization
+All fields are optional. Without a config file, defaults are used.
+
+### Client Configuration
+
+By default, the capture client sends data to `http://127.0.0.1:7331`. If you use a custom port in your config, configure the client to match:
+
+```ts
+import { configureCapture } from "react-loaded";
+
+configureCapture({ port: 9000 });
+// or
+configureCapture({ url: "http://127.0.0.1:9000" });
+```
+
+### Security Model
+
+- Capture server binds to `127.0.0.1` only
+- Incoming `Host` must match the configured allowlist
+- Capture payload `id` is validated against a strict pattern
+- Request body size is capped (1 MB)
+
+### How it works
+
+1. In development, `AutoSkeleton` serializes its children's DOM and sends the capture via HTTP
+2. The CLI receives the capture and generates a static React component (`.tsx`)
+3. A `registry.ts` is auto-maintained, mapping skeleton IDs to generated components
+4. In production, the pre-generated skeleton renders instantly with zero runtime overhead
+
+## API Reference
+
+### `<AutoSkeleton>`
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `id` | `string` | required | Unique skeleton identifier |
+| `children` | `ReactNode` | required | Source component to capture and show when loaded |
+| `loading` | `boolean` | `true` | When `true`, show skeleton; when `false`, show children |
+| `animate` | `boolean` | `true` | Enable shimmer animation |
+| `variant` | `"filled" \| "ghost"` | `"filled"` | Visual variant for skeleton surface |
+| `className` | `string` | — | Extra CSS classes applied to the skeleton root |
+
+### `<AutoSkeletonList>`
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `id` | `string` | required | Skeleton registry ID for each row |
+| `loading` | `boolean` | `false` | Whether the list is loading |
+| `items` | `T[] \| undefined` | required | Items to render (pass `undefined` while loading) |
+| `renderItem` | `(item: T, index: number) => ReactElement` | required | Render function for loaded items |
+| `renderSkeleton` | `(index: number) => ReactElement` | required | Render function for skeleton rows |
+| `storageKey` | `string` | — | Key for `localStorage` persistence |
+| `defaultCount` | `number` | `3` | Initial skeleton count |
+| `minCount` | `number` | `1` | Minimum skeletons to show |
+| `maxCount` | `number` | — | Maximum skeletons to show |
+| `animate` | `boolean` | `true` | Enable shimmer animation |
+| `variant` | `"filled" \| "ghost"` | `"filled"` | Visual variant |
+| `keyExtractor` | `(item: T, index: number) => string \| number` | index | Key function for items |
+
+### `<LoadedProvider>`
+
+Wraps your app (or a subtree) to provide the skeleton registry via context.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `registry` | `SkeletonRegistry` | The auto-generated registry object |
+| `persistedSnapshot` | `PersistedSkeletonSnapshot` | Optional. Pre-loaded snapshot (for SSR, pass from `getServerSnapshot()`) |
+| `children` | `ReactNode` | App content |
+
+### `useIsSkeletonMode()`
+
+Returns `true` when the current component tree is inside an active skeleton. Useful for hiding interactive elements or animations during loading.
+
+## CSS Customization
 
 Override CSS custom properties to match your design system:
 
 ```css
 :root {
-  --loaded-bg-wrapper: rgba(229, 231, 235, 1);   /* Skeleton background */
-  --loaded-bg-content: rgba(156, 163, 175, 0.6); /* Content block color */
-  --loaded-border-radius: 4px;                   /* Border radius */
-  --loaded-text-inset: 0.3em;                    /* Text bar vertical padding */
+  --loaded-bg: rgba(229, 231, 235, 1);        /* skeleton container fill */
+  --loaded-content: rgba(156, 163, 175, 0.6);  /* text/media/interactive fill */
+  --loaded-radius: 4px;                        /* border radius for text bars */
+  --loaded-text-inset: 0.3em;                  /* vertical inset for text bars */
+  --loaded-shimmer-duration: 1.5s;             /* shimmer animation duration */
 }
 ```
 
-### Dark Mode Example
+### Dark Mode
 
 ```css
 @media (prefers-color-scheme: dark) {
   :root {
-    --loaded-bg-wrapper: rgba(55, 65, 81, 1);
-    --loaded-bg-content: rgba(107, 114, 128, 0.6);
+    --loaded-bg: rgba(55, 65, 81, 1);
+    --loaded-content: rgba(107, 114, 128, 0.6);
   }
 }
 ```
-
-## How It Works
-
-1. **Render phase:** Your component renders with mock data
-2. **CSS masking:** Text becomes transparent, backgrounds neutralized
-3. **Visual overlay:** Skeleton bars appear over text, media gets placeholder backgrounds
-4. **Transition:** When `loading` becomes `false`, your real component renders in place
-
-**SSR note:** React Loaded is primarily designed for client-side loading states (navigation/refetch).
-If you render skeletons during SSR, the full overlay (text widths, media/content classes) is applied on the client via refs.
-For best SSR results, ensure your skeleton `element` forwards `className` and `ref` to a DOM node.
-
-The skeleton preserves:
-- Exact dimensions and spacing
-- Text alignment (left, center, right)
-- Responsive behavior
-- Component hierarchy
-
-## Ref Handling
-
-React Loaded supports both React ref models:
-
-- **React 19+:** `ref` can be passed as a regular prop.
-- **React 18:** function components should use `forwardRef`.
-
-For best rendering, your skeleton `element` should expose a DOM ref. If it does not, React Loaded automatically wraps it in a `div` and logs a development warning.
-
-To suppress the warning:
-
-```tsx
-<SmartSkeleton
-  suppressRefWarning
-  element={<ThirdPartyComponent />}
-/>
-```
-
-Or better, wrap third-party components so a DOM ref is always available:
-
-```tsx
-const WrappedComponent = forwardRef((props, ref) => (
-  <div ref={ref}>
-    <ThirdPartyComponent {...props} />
-  </div>
-));
-```
-
-## Stable Text Widths with `seed`
-
-By default, skeleton text bars have slightly randomized widths to look more natural. If you need consistent widths across renders (useful for tests or SSR hydration), pass a `seed`:
-
-```tsx
-<SmartSkeleton
-  loading={isLoading}
-  seed="user-profile"
-  element={<ProfileCard user={mockUser} />}
->
-  <ProfileCard user={user} />
-</SmartSkeleton>
-```
-
-The same seed always produces the same text widths, making skeleton output deterministic.
-
-## Notes
-
-- **React 18 and 19** are supported.
-- Persistence uses `localStorage` under the root key `react-loaded` with a versioned schema.
-- In skeleton mode, the library applies CSS classes on the subtree. Components should accept `className` and expose a usable ref (React 19 `ref` prop or React 18 `forwardRef`).
-- Dev warnings are enabled when `NODE_ENV !== "production"`. If your environment doesn’t inject `NODE_ENV`, you can force them with `globalThis.__REACT_LOADED_DEV__ = true`.
-- SSR: the library uses an isomorphic layout effect to avoid server warnings and keep hydration stable.
-- JSR/Deno: CSS module imports aren’t supported. For Node/bundlers, import `react-loaded/style.css`. For Deno, you’ll need to copy the CSS into your app (or recreate the styles).
 
 ## License
 

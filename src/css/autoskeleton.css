@@ -1,0 +1,136 @@
+:root {
+	--loaded-bg: rgba(229, 231, 235, 1);
+	--loaded-content: rgba(156, 163, 175, 0.6);
+	--loaded-radius: 4px;
+	--loaded-text-inset: 0.3em;
+	--loaded-shimmer-duration: 1.5s;
+}
+
+.loaded-skeleton {
+	user-select: none;
+	pointer-events: none;
+}
+
+.loaded-dev-skeleton .loaded-skeleton {
+	user-select: auto;
+	pointer-events: auto;
+}
+
+.loaded-skeleton,
+.loaded-skeleton * {
+	color: transparent !important;
+	background-color: transparent !important;
+	border-color: transparent !important;
+	background-image: none !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
+}
+
+.loaded-skeleton img {
+	object-position: -9999px -9999px !important;
+}
+
+.loaded-skeleton *::before,
+.loaded-skeleton *::after {
+	background: transparent !important;
+	background-image: none !important;
+	color: transparent !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
+}
+
+.loaded-skeleton ::placeholder {
+	color: transparent !important;
+	opacity: 0 !important;
+}
+
+/* Background fill for the root skeleton container */
+.loaded-skeleton.loaded-bg {
+	background-color: var(--loaded-bg) !important;
+}
+
+/* Text skeleton: pseudo-element bar */
+.loaded-skeleton .loaded-text {
+	position: relative;
+	display: inline-block;
+	min-width: var(--loaded-text-width, 0) !important;
+	min-height: var(--loaded-text-height, auto) !important;
+	background-color: transparent !important;
+}
+
+.loaded-skeleton .loaded-text::before {
+	content: var(--loaded-text-content, "") !important;
+	position: absolute !important;
+	left: 0 !important;
+	display: inline-block !important;
+	white-space: pre !important;
+	color: transparent !important;
+	width: var(--loaded-text-width, auto) !important;
+	max-width: 100% !important;
+	top: var(--loaded-text-inset) !important;
+	bottom: var(--loaded-text-inset) !important;
+	background: var(--loaded-content) !important;
+	background-image: none !important;
+	border-radius: var(--loaded-radius) !important;
+	pointer-events: none !important;
+	transform: none !important;
+}
+
+.loaded-skeleton .loaded-text[data-loaded-align="center"]::before {
+	left: 50% !important;
+	transform: translateX(-50%) !important;
+}
+
+.loaded-skeleton .loaded-text[data-loaded-align="right"]::before {
+	left: auto !important;
+	right: 0 !important;
+}
+
+/* Media placeholders (img, video, canvas) */
+.loaded-skeleton .loaded-media {
+	background-color: var(--loaded-content) !important;
+	opacity: 1 !important;
+}
+
+/* SVG placeholders (rounded) */
+.loaded-skeleton .loaded-svg {
+	background-color: var(--loaded-content) !important;
+	border-radius: 50% !important;
+}
+
+.loaded-skeleton .loaded-svg * {
+	visibility: hidden !important;
+}
+
+/* Interactive elements (buttons, inputs, links) */
+.loaded-skeleton .loaded-interactive {
+	background-color: var(--loaded-content) !important;
+}
+
+/* Force-hidden descendants inside buttons */
+.loaded-skeleton .loaded-hide {
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+/* Shimmer animation */
+@keyframes loaded-shimmer {
+	0% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.6;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+.loaded-skeleton.loaded-animate {
+	animation: loaded-shimmer var(--loaded-shimmer-duration) ease-in-out infinite;
+}
+
+.loaded-no-animate .loaded-skeleton.loaded-animate {
+	animation: none !important;
+}

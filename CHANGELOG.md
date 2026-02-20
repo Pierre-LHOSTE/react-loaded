@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.0.0-beta.0
+
+Complete rewrite. Skeletons are now **auto-generated at dev time** from the live DOM instead of being applied at runtime via refs. Zero runtime overhead in production.
+
+### Breaking Changes
+
+- `SmartSkeleton` → `AutoSkeleton` — uses `children` instead of `element` prop; requires an `id` prop.
+- `SmartSkeletonList` → `AutoSkeletonList` — same rename; requires an `id` prop.
+- `SkeletonContext.Provider` → `LoadedProvider` — provides both the skeleton registry and an optional SSR snapshot.
+- `seed` and `suppressRefWarning` props removed.
+- CSS variables renamed (`--loaded-bg-wrapper` → `--loaded-bg`, `--loaded-bg-content` → `--loaded-content`, `--loaded-border-radius` → `--loaded-radius`). Added `--loaded-shimmer-duration`.
+- localStorage schema upgraded to v2 (automatic migration from v1).
+
+### Added
+
+- **`autoskeleton` CLI** — dev server that captures the DOM and generates static `.tsx` skeleton components + a `registry.ts`.
+- **Next.js SSR integration** — `react-loaded/next` (`getServerSnapshot`) and `react-loaded/next/client` (`SkeletonCookieSync`) for cookie-based snapshot hydration.
+- **Dimension persistence** — text widths/heights are measured from real content and persisted to localStorage, so skeletons match actual dimensions.
+- **Statistical distributions for lists** — skeleton rows get naturally-varied dimensions based on `{ avg, dev }` stats from real items.
+- **`defineConfig()`** — typed CLI configuration (`port`, `outDir`, `allowedHosts`).
+- **Dev toast notifications** — in-browser feedback when skeletons are generated or updated.
+
+### Removed
+
+- Runtime DOM traversal system (`applySkeletonClasses`, `refUtils`, wrapper fallback).
+
 ## [0.2.0] - 2026-02-08
 
 ### Added

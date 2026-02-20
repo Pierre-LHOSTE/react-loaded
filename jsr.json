@@ -1,9 +1,13 @@
 {
 	"name": "@vd/react-loaded",
-	"version": "0.2.0",
-	"exports": "./dist/index.js",
+	"version": "1.0.0-beta.0",
+	"exports": {
+		".": "./dist/index.js",
+		"./next": "./dist/next/index.js",
+		"./next/client": "./dist/next/SkeletonCookieSync.js"
+	},
 	"publish": {
 		"include": ["README.md", "LICENSE", "dist/**/*"],
-		"exclude": ["!dist"]
+		"exclude": ["!dist", "!dist/**"]
 	}
 }
