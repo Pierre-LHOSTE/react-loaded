@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0-beta.0
+## [1.0.0-beta.0] - 2026-02-20
 
 Complete rewrite. Skeletons are now **auto-generated at dev time** from the live DOM instead of being applied at runtime via refs. Zero runtime overhead in production.
 
