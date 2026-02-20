@@ -1,5 +1,5 @@
 export const STORAGE_KEY = "react-loaded";
-export const STORAGE_VERSION = 1 as const;
+export const STORAGE_VERSION = 2 as const;
 export const STORAGE_UPDATE_EVENT = "react-loaded:storage-update";
 
 export type Distribution = { avg: number; dev: number };

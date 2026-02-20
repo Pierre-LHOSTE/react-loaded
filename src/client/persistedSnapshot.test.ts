@@ -14,7 +14,7 @@ describe("client persistedSnapshot", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: { list: 3 },
 				w: { card: { t0: 120.2 } },
 				h: { card: { t0: 20.5 } },
@@ -36,7 +36,7 @@ describe("client persistedSnapshot", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: { a: 1, b: 2 },
 				w: { a: { t0: 120.26, t1: 90.99 } },
 				h: { a: { t0: 20.26 } },
@@ -64,7 +64,7 @@ describe("client persistedSnapshot", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: { list: 3 },
 				w: {},
 				h: {},

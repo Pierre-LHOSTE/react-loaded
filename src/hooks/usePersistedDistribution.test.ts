@@ -30,7 +30,7 @@ describe("usePersistedDistribution", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {},
 				wd: {
@@ -181,7 +181,7 @@ describe("usePersistedDistribution", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {},
 				wd: {
@@ -223,7 +223,7 @@ describe("usePersistedDistribution", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {},
 				wd: {

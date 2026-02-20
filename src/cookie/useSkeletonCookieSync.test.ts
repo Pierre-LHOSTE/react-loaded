@@ -21,7 +21,7 @@ describe("useSkeletonCookieSync", () => {
 
 	it("syncs snapshot to cookie on mount", () => {
 		const payload: StoragePayload = {
-			v: 1,
+			v: 2,
 			c: { list: 3 },
 			w: {},
 			h: {},
@@ -40,7 +40,7 @@ describe("useSkeletonCookieSync", () => {
 
 		// Set data after mount
 		const payload: StoragePayload = {
-			v: 1,
+			v: 2,
 			c: { updated: 10 },
 			w: {},
 			h: {},

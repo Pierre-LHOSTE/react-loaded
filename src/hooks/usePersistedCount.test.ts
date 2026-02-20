@@ -26,7 +26,7 @@ describe("usePersistedCount", () => {
 	it("uses stored count when available", () => {
 		localStorage.setItem(
 			"react-loaded",
-			JSON.stringify({ v: 1, c: { list: 5 }, w: {}, h: {}, wd: {}, hd: {} }),
+			JSON.stringify({ v: 2, c: { list: 5 }, w: {}, h: {}, wd: {}, hd: {} }),
 		);
 
 		const { result } = renderHook(() =>
@@ -67,7 +67,7 @@ describe("usePersistedCount", () => {
 
 		await waitFor(() => {
 			const stored = JSON.parse(localStorage.getItem("react-loaded") ?? "{}");
-			expect(stored.v).toBe(1);
+			expect(stored.v).toBe(2);
 			expect(stored.c.list).toBe(7);
 		});
 	});
@@ -119,7 +119,7 @@ describe("usePersistedCount", () => {
 		localStorage.setItem(
 			"react-loaded",
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: { list: "not a number" },
 				w: {},
 				h: {},
@@ -144,7 +144,7 @@ describe("usePersistedCount", () => {
 	it("clamps stored value to minCount", () => {
 		localStorage.setItem(
 			"react-loaded",
-			JSON.stringify({ v: 1, c: { list: 1 }, w: {}, h: {}, wd: {}, hd: {} }),
+			JSON.stringify({ v: 2, c: { list: 1 }, w: {}, h: {}, wd: {}, hd: {} }),
 		);
 
 		const { result } = renderHook(() =>
@@ -239,7 +239,7 @@ describe("usePersistedCount", () => {
 		localStorage.setItem(
 			"react-loaded",
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: { listA: 8 },
 				w: {},
 				wd: {},
@@ -305,7 +305,7 @@ describe("usePersistedCount", () => {
 		localStorage.setItem(
 			"react-loaded",
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: { list: 8 },
 				w: {},
 				wd: {},

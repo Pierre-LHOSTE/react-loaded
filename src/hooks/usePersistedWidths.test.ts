@@ -30,7 +30,7 @@ describe("usePersistedWidths", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: { card: { t0: 100, t1: 200, t2: 50 } },
 				wd: {},
@@ -146,7 +146,7 @@ describe("usePersistedWidths", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {
 					card: { t0: 100, t1: 200 },
@@ -180,7 +180,7 @@ describe("usePersistedWidths", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: { card: { t0: 999 } },
 				wd: {},

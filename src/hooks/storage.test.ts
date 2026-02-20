@@ -29,7 +29,7 @@ describe("storage", () => {
 
 		it("reads v2 payload correctly", () => {
 			const stored: StoragePayload = {
-				v: 1,
+				v: 2,
 				c: { list: 5 },
 				w: { card: { t0: 100, t1: 200 } },
 				h: { card: { t0: 20, t1: 24 } },
@@ -69,7 +69,7 @@ describe("storage", () => {
 			localStorage.setItem(
 				STORAGE_KEY,
 				JSON.stringify({
-					v: 1,
+					v: 2,
 					c: { good: 5, bad: "string" },
 					w: {},
 					wd: {},
@@ -84,7 +84,7 @@ describe("storage", () => {
 			localStorage.setItem(
 				STORAGE_KEY,
 				JSON.stringify({
-					v: 1,
+					v: 2,
 					c: {},
 					w: {
 						good: { t0: 100, t1: 200 },
@@ -103,7 +103,7 @@ describe("storage", () => {
 			localStorage.setItem(
 				STORAGE_KEY,
 				JSON.stringify({
-					v: 1,
+					v: 2,
 					c: {},
 					w: {},
 					h: { card: { t0: 18, t1: 36 } },
@@ -125,7 +125,7 @@ describe("storage", () => {
 			localStorage.setItem(
 				STORAGE_KEY,
 				JSON.stringify({
-					v: 1,
+					v: 2,
 					c: {},
 					w: {},
 					wd: {},
@@ -141,7 +141,7 @@ describe("storage", () => {
 			localStorage.setItem(
 				STORAGE_KEY,
 				JSON.stringify({
-					v: 1,
+					v: 2,
 					c: {},
 					w: {},
 					wd: {
@@ -162,7 +162,7 @@ describe("storage", () => {
 	describe("writeStoragePayload", () => {
 		it("writes payload to localStorage", () => {
 			const payload: StoragePayload = {
-				v: 1,
+				v: 2,
 				c: { list: 5 },
 				w: { card: { t0: 150 } },
 				h: {},
@@ -185,7 +185,7 @@ describe("storage", () => {
 
 			expect(() => {
 				writeStoragePayload({
-					v: 1,
+					v: 2,
 					c: {},
 					w: {},
 					h: {},
@@ -202,7 +202,7 @@ describe("storage", () => {
 			window.addEventListener(STORAGE_UPDATE_EVENT, listener);
 
 			writeStoragePayload({
-				v: 1,
+				v: 2,
 				c: { list: 1 },
 				w: {},
 				h: {},
@@ -238,7 +238,7 @@ describe("storage", () => {
 			window.addEventListener(STORAGE_UPDATE_EVENT, listener);
 
 			writeStoragePayload({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {},
 				h: {},

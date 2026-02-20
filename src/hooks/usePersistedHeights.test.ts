@@ -30,7 +30,7 @@ describe("usePersistedHeights", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {},
 				h: { card: { t0: 18, t1: 36, t2: 20 } },
@@ -147,7 +147,7 @@ describe("usePersistedHeights", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {},
 				h: {
@@ -183,7 +183,7 @@ describe("usePersistedHeights", () => {
 		localStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				v: 1,
+				v: 2,
 				c: {},
 				w: {},
 				h: { card: { t0: 999 } },

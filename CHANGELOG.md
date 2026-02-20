@@ -11,7 +11,7 @@ Complete rewrite. Skeletons are now **auto-generated at dev time** from the live
 - `SkeletonContext.Provider` → `LoadedProvider` — provides both the skeleton registry and an optional SSR snapshot.
 - `seed` and `suppressRefWarning` props removed.
 - CSS variables renamed (`--loaded-bg-wrapper` → `--loaded-bg`, `--loaded-bg-content` → `--loaded-content`, `--loaded-border-radius` → `--loaded-radius`). Added `--loaded-shimmer-duration`.
-- localStorage schema upgraded to v2 (automatic migration from v1).
+- localStorage schema v2 — stores counts, widths, heights, and distributions with shortened keys (`c`, `w`, `h`, `wd`, `hd`). Incompatible with v1; old data is discarded on next write.
 
 ### Added
 

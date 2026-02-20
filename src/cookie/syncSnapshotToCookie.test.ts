@@ -19,7 +19,7 @@ describe("syncSnapshotToCookie", () => {
 
 	it("writes localStorage snapshot to document.cookie", () => {
 		const payload: StoragePayload = {
-			v: 1,
+			v: 2,
 			c: { list: 3 },
 			w: { card: { t0: 100 } },
 			h: {},
@@ -35,7 +35,7 @@ describe("syncSnapshotToCookie", () => {
 
 	it("uses custom cookie name", () => {
 		const payload: StoragePayload = {
-			v: 1,
+			v: 2,
 			c: { list: 1 },
 			w: {},
 			h: {},
@@ -72,7 +72,7 @@ describe("syncSnapshotToCookie", () => {
 			w[`skeleton-${i}`] = textKeys;
 		}
 		const payload: StoragePayload = {
-			v: 1,
+			v: 2,
 			c: {},
 			w,
 			h: {},
