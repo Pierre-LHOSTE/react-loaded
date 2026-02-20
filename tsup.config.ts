@@ -21,7 +21,6 @@ export default defineConfig([
 		external: ["react", "react-dom"],
 		outDir: "dist/next",
 		banner: { js: '"use client";' },
-		treeshake: true,
 	},
 	{
 		entry: ["src/next/index.ts"],
