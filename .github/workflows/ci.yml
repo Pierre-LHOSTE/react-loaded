@@ -37,5 +37,11 @@ jobs:
       - name: Tests
         run: pnpm run test
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser Tests
+        run: pnpm run test:browser
+
       - name: Build
         run: pnpm run build
