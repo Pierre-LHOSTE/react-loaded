@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { StoragePayload } from "../types";
 import { usePersistedValueRecord } from "./usePersistedValueRecord";
@@ -8,6 +8,8 @@ const STORAGE_KEY = "react-loaded";
 function makePayload(overrides?: Partial<StoragePayload>): StoragePayload {
 	return { v: 2, c: {}, w: {}, h: {}, wd: {}, hd: {}, ...overrides };
 }
+
+import { requireValue } from "../utils/require-value";
 
 describe("usePersistedValueRecord", () => {
 	beforeEach(() => {
@@ -79,7 +81,9 @@ describe("usePersistedValueRecord", () => {
 
 		// Verify it's in localStorage
 		const raw = localStorage.getItem(STORAGE_KEY);
-		const stored = JSON.parse(raw!);
+		const stored = JSON.parse(
+			requireValue(raw, "Expected persisted value record payload"),
+		);
 		expect(stored.w.card).toEqual({ t0: 180, t1: 250 });
 	});
 

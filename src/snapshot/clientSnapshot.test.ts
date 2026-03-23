@@ -6,6 +6,8 @@ import {
 
 const STORAGE_KEY = "react-loaded";
 
+import { requireValue } from "../utils/require-value";
+
 describe("getClientPersistedSnapshot", () => {
 	beforeEach(() => {
 		localStorage.clear();
@@ -56,7 +58,9 @@ describe("getClientPersistedSnapshot", () => {
 		);
 
 		const result = getClientPersistedSnapshot({ maxSkeletons: 2 });
-		expect(Object.keys(result.c!)).toHaveLength(2);
+		expect(
+			Object.keys(requireValue(result.c, "Expected compacted counts to exist")),
+		).toHaveLength(2);
 	});
 });
 

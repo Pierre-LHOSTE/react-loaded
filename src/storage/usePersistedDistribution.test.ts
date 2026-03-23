@@ -10,6 +10,8 @@ function makePayload(overrides?: Partial<StoragePayload>): StoragePayload {
 	return { v: 2, c: {}, w: {}, h: {}, wd: {}, hd: {}, ...overrides };
 }
 
+import { requireValue } from "../utils/require-value";
+
 describe("usePersistedDistribution", () => {
 	beforeEach(() => {
 		localStorage.clear();
@@ -90,7 +92,9 @@ describe("usePersistedDistribution", () => {
 
 		// Verify in localStorage
 		const raw = localStorage.getItem(STORAGE_KEY);
-		const stored = JSON.parse(raw!);
+		const stored = JSON.parse(
+			requireValue(raw, "Expected persisted width distribution payload"),
+		);
 		expect(stored.wd.feed.t0.avg).toBe(150);
 	});
 });
@@ -149,7 +153,9 @@ describe("usePersistedHeightDistribution", () => {
 		expect(result.current?.t0.avg).toBe(25);
 
 		const raw = localStorage.getItem(STORAGE_KEY);
-		const stored = JSON.parse(raw!);
+		const stored = JSON.parse(
+			requireValue(raw, "Expected persisted height distribution payload"),
+		);
 		expect(stored.hd.feed.t0.avg).toBe(25);
 	});
 });

@@ -15,6 +15,7 @@ import { transform } from "sucrase";
 import { afterEach, describe, expect, it } from "vitest";
 import { serializeElement } from "../capture/serialize";
 import { generateComponent } from "../generator/to-jsx";
+import { requireValue } from "../utils/require-value";
 import cssText from "./autoskeleton.css?raw";
 
 // Tolerance in pixels for dimension comparison.
@@ -376,15 +377,23 @@ describe("pixel-perfect skeleton layout", () => {
 			const skelStrong = r.skeleton.find((e) => e.tag === "strong");
 			expect(origStrong).toBeDefined();
 			expect(skelStrong).toBeDefined();
+			const originalStrong = requireValue(
+				origStrong,
+				"Missing original strong measurement",
+			);
+			const skeletonStrong = requireValue(
+				skelStrong,
+				"Missing skeleton strong measurement",
+			);
 			expectClose(
-				skelStrong!.width,
-				origStrong!.width,
+				skeletonStrong.width,
+				originalStrong.width,
 				r.tolerance,
 				"strong width",
 			);
 			expectClose(
-				skelStrong!.height,
-				origStrong!.height,
+				skeletonStrong.height,
+				originalStrong.height,
 				r.tolerance,
 				"strong height",
 			);
@@ -401,7 +410,12 @@ describe("pixel-perfect skeleton layout", () => {
 			const skelEm = r.skeleton.find((e) => e.tag === "em");
 			expect(origEm).toBeDefined();
 			expect(skelEm).toBeDefined();
-			expectClose(skelEm!.width, origEm!.width, r.tolerance, "em width");
+			expectClose(
+				requireValue(skelEm, "Missing skeleton em measurement").width,
+				requireValue(origEm, "Missing original em measurement").width,
+				r.tolerance,
+				"em width",
+			);
 		});
 
 		it("<a> link (interactive) preserves outer container dimensions", async () => {
@@ -442,15 +456,28 @@ describe("pixel-perfect skeleton layout", () => {
 			const skelCode = r.skeleton.find((e) => e.tag === "code");
 			expect(origSmall).toBeDefined();
 			expect(skelSmall).toBeDefined();
+			const originalSmall = requireValue(
+				origSmall,
+				"Missing original small measurement",
+			);
+			const skeletonSmall = requireValue(
+				skelSmall,
+				"Missing skeleton small measurement",
+			);
 			expectClose(
-				skelSmall!.width,
-				origSmall!.width,
+				skeletonSmall.width,
+				originalSmall.width,
 				r.tolerance,
 				"small width",
 			);
 			expect(origCode).toBeDefined();
 			expect(skelCode).toBeDefined();
-			expectClose(skelCode!.width, origCode!.width, r.tolerance, "code width");
+			expectClose(
+				requireValue(skelCode, "Missing skeleton code measurement").width,
+				requireValue(origCode, "Missing original code measurement").width,
+				r.tolerance,
+				"code width",
+			);
 		});
 	});
 
@@ -586,15 +613,27 @@ describe("pixel-perfect skeleton layout", () => {
 			);
 			// img becomes div.loaded-media with explicit width/height
 			const origImg = r.original.find((e) => e.tag === "img");
-			const skelMedia = r.skeleton.find(
-				(_, i) => i === r.original.indexOf(origImg!),
+			const originalImage = requireValue(
+				origImg,
+				"Missing original image measurement",
 			);
+			const origImgIndex = r.original.indexOf(originalImage);
+			const skelMedia = r.skeleton[origImgIndex];
 			expect(origImg).toBeDefined();
 			expect(skelMedia).toBeDefined();
-			expectClose(skelMedia!.width, origImg!.width, r.tolerance, "img width");
+			const skeletonMedia = requireValue(
+				skelMedia,
+				"Missing skeleton image measurement",
+			);
 			expectClose(
-				skelMedia!.height,
-				origImg!.height,
+				skeletonMedia.width,
+				originalImage.width,
+				r.tolerance,
+				"img width",
+			);
+			expectClose(
+				skeletonMedia.height,
+				originalImage.height,
 				r.tolerance,
 				"img height",
 			);
@@ -795,7 +834,12 @@ describe("pixel-perfect skeleton layout", () => {
 			const skelSpan = r.skeleton.find((e) => e.tag === "span");
 			expect(origSpan).toBeDefined();
 			expect(skelSpan).toBeDefined();
-			expectClose(skelSpan!.width, origSpan!.width, r.tolerance, "span width");
+			expectClose(
+				requireValue(skelSpan, "Missing skeleton span measurement").width,
+				requireValue(origSpan, "Missing original span measurement").width,
+				r.tolerance,
+				"span width",
+			);
 		});
 
 		it("deeply nested structure preserves outer dimensions", async () => {

@@ -1,10 +1,10 @@
 import {
 	Children,
 	type CSSProperties,
-	type ForwardedRef,
 	cloneElement,
-	forwardRef,
+	type ForwardedRef,
 	Fragment,
+	forwardRef,
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
@@ -166,217 +166,216 @@ export const AutoSkeleton = forwardRef<HTMLElement, AutoSkeletonAllProps>(
 		},
 		externalRef,
 	) {
-	const registry = useRegistry();
-	const Generated = id ? registry[id] : undefined;
-	const hasGeneratedSkeleton = loading && Boolean(Generated);
-	const [forceWrapper, setForceWrapper] = useState(false);
-	const attachedRef = useRef<HTMLElement | null>(null);
-	const attemptedDirectRef = useRef(false);
-	const captureHasWrapperRef = useRef(false);
+		const registry = useRegistry();
+		const Generated = id ? registry[id] : undefined;
+		const hasGeneratedSkeleton = loading && Boolean(Generated);
+		const [forceWrapper, setForceWrapper] = useState(false);
+		const attachedRef = useRef<HTMLElement | null>(null);
+		const attemptedDirectRef = useRef(false);
+		const captureHasWrapperRef = useRef(false);
 
-	// --- Dimension measurement ---
-	const [measuredWidths, setMeasuredWidths] = useState<
-		Record<string, number> | undefined
-	>();
-	const [measuredHeights, setMeasuredHeights] = useState<
-		Record<string, number> | undefined
-	>();
+		// --- Dimension measurement ---
+		const [measuredWidths, setMeasuredWidths] = useState<
+			Record<string, number> | undefined
+		>();
+		const [measuredHeights, setMeasuredHeights] = useState<
+			Record<string, number> | undefined
+		>();
 
-	const initialWidths = useInitialWidthSnapshot(id ?? "");
-	const initialHeights = useInitialHeightSnapshot(id ?? "");
+		const initialWidths = useInitialWidthSnapshot(id ?? "");
+		const initialHeights = useInitialHeightSnapshot(id ?? "");
 
-	const storedWidths = usePersistedWidths({
-		storageKey: id ?? "",
-		currentWidths: measuredWidths,
-		loading,
-		initialWidths,
-	});
+		const storedWidths = usePersistedWidths({
+			storageKey: id ?? "",
+			currentWidths: measuredWidths,
+			loading,
+			initialWidths,
+		});
 
-	const storedHeights = usePersistedHeights({
-		storageKey: id ?? "",
-		currentHeights: measuredHeights,
-		loading,
-		initialHeights,
-	});
+		const storedHeights = usePersistedHeights({
+			storageKey: id ?? "",
+			currentHeights: measuredHeights,
+			loading,
+			initialHeights,
+		});
 
-	const widthsToApply = _textWidths ?? storedWidths;
-	const heightsToApply = _textHeights ?? storedHeights;
-	const skeletonRootStyle = buildDimensionVars(widthsToApply, heightsToApply);
+		const widthsToApply = _textWidths ?? storedWidths;
+		const heightsToApply = _textHeights ?? storedHeights;
+		const skeletonRootStyle = buildDimensionVars(widthsToApply, heightsToApply);
 
-	const generatedClassName = joinClassNames(
-		className,
-		!animate && "loaded-no-animate",
-	);
-
-	// --- Wrapper logic ---
-	const initialWrapperNeeded = shouldUseWrapper(children);
-	const shouldRenderWrapper = forceWrapper || initialWrapperNeeded;
-
-	captureHasWrapperRef.current = shouldRenderWrapper;
-
-	// In non-loading mode, forward className to the child (in loading mode it's used for the skeleton)
-	const forwardedRest =
-		className != null ? { ...rest, className } : rest;
-
-	const directRefChild =
-		hasGeneratedSkeleton || shouldRenderWrapper
-			? null
-			: tryCloneWithRef(
-					children,
-					(el) => {
-						attachedRef.current = el;
-						setRef(externalRef, el);
-					},
-					forwardedRest,
-				);
-
-	attemptedDirectRef.current = directRefChild != null;
-
-	useLayoutEffect(() => {
-		if (hasGeneratedSkeleton) return;
-		if (shouldRenderWrapper) return;
-		if (!attemptedDirectRef.current) return;
-		if (attachedRef.current == null) {
-			setForceWrapper(true);
-		}
-	}, [hasGeneratedSkeleton, shouldRenderWrapper]);
-
-	// --- Measurement effect ---
-	const handleMeasure = useCallback(() => {
-		if (loading || !id) return;
-		const target = attachedRef.current;
-		if (!target) return;
-
-		const { widths, heights } = collectTextDimensions(target);
-		if (Object.keys(widths).length > 0) {
-			setMeasuredWidths(widths);
-		}
-		if (Object.keys(heights).length > 0) {
-			setMeasuredHeights(heights);
-		}
-	}, [loading, id]);
-
-	useEffect(() => {
-		handleMeasure();
-	}, [handleMeasure]);
-
-	// --- Dev capture effect ---
-	useEffect(() => {
-		if (!isDev || !id) return;
-		if (loading && !hasGeneratedSkeleton) return;
-
-		const captureTarget = attachedRef.current;
-		if (!captureTarget && !shouldRenderWrapper) return;
-
-		const timer = setTimeout(() => {
-			const root = captureHasWrapperRef.current
-				? (captureTarget?.firstElementChild ?? captureTarget)
-				: captureTarget;
-			if (!root) return;
-
-			captureElement(id, root);
-		}, 100);
-
-		return () => clearTimeout(timer);
-	}, [id, loading, shouldRenderWrapper, hasGeneratedSkeleton]);
-
-	// --- Imperative style update on skeleton root ---
-	useIsomorphicLayoutEffect(() => {
-		if (!loading || !Generated) return;
-		// Find the skeleton root element by data-sk-id
-		if (!id) return;
-		const generatedRoot = document.querySelector(
-			`[data-sk-id="${id}"]`,
-		) as HTMLElement | null;
-		if (!generatedRoot) return;
-
-		// Clean stale vars
-		for (let i = generatedRoot.style.length - 1; i >= 0; i -= 1) {
-			const prop = generatedRoot.style.item(i);
-			if (prop.startsWith("--sk-w-")) {
-				const key = prop.slice("--sk-w-".length);
-				if (!widthsToApply || !(key in widthsToApply)) {
-					generatedRoot.style.removeProperty(prop);
-				}
-			}
-			if (prop.startsWith("--sk-h-")) {
-				const key = prop.slice("--sk-h-".length);
-				if (!heightsToApply || !(key in heightsToApply)) {
-					generatedRoot.style.removeProperty(prop);
-				}
-			}
-		}
-
-		if (widthsToApply) {
-			for (const [key, value] of Object.entries(widthsToApply)) {
-				if (!Number.isFinite(value) || value < 0) continue;
-				generatedRoot.style.setProperty(`--sk-w-${key}`, `${value}px`);
-			}
-		}
-
-		if (heightsToApply) {
-			for (const [key, value] of Object.entries(heightsToApply)) {
-				if (!Number.isFinite(value) || value < 0) continue;
-				generatedRoot.style.setProperty(`--sk-h-${key}`, `${value}px`);
-			}
-		}
-	}, [id, loading, Generated, widthsToApply, heightsToApply]);
-
-	// --- Render ---
-	if (hasGeneratedSkeleton && Generated) {
-		const skeleton = (
-			<SkeletonContext.Provider value={true}>
-				<Generated
-					variant={variant}
-					className={generatedClassName}
-					style={skeletonRootStyle}
-					dataSkId={id}
-				/>
-			</SkeletonContext.Provider>
+		const generatedClassName = joinClassNames(
+			className,
+			!animate && "loaded-no-animate",
 		);
 
-		if (!isDev) return skeleton;
+		// --- Wrapper logic ---
+		const initialWrapperNeeded = shouldUseWrapper(children);
+		const shouldRenderWrapper = forceWrapper || initialWrapperNeeded;
 
-		// Dev: skeleton + children off-screen pour détecter les changements et re-capturer
-		captureHasWrapperRef.current = true;
+		captureHasWrapperRef.current = shouldRenderWrapper;
+
+		// In non-loading mode, forward className to the child (in loading mode it's used for the skeleton)
+		const forwardedRest = className != null ? { ...rest, className } : rest;
+
+		const directRefChild =
+			hasGeneratedSkeleton || shouldRenderWrapper
+				? null
+				: tryCloneWithRef(
+						children,
+						(el) => {
+							attachedRef.current = el;
+							setRef(externalRef, el);
+						},
+						forwardedRest,
+					);
+
+		attemptedDirectRef.current = directRefChild != null;
+
+		useLayoutEffect(() => {
+			if (hasGeneratedSkeleton) return;
+			if (shouldRenderWrapper) return;
+			if (!attemptedDirectRef.current) return;
+			if (attachedRef.current == null) {
+				setForceWrapper(true);
+			}
+		}, [hasGeneratedSkeleton, shouldRenderWrapper]);
+
+		// --- Measurement effect ---
+		const handleMeasure = useCallback(() => {
+			if (loading || !id) return;
+			const target = attachedRef.current;
+			if (!target) return;
+
+			const { widths, heights } = collectTextDimensions(target);
+			if (Object.keys(widths).length > 0) {
+				setMeasuredWidths(widths);
+			}
+			if (Object.keys(heights).length > 0) {
+				setMeasuredHeights(heights);
+			}
+		}, [loading, id]);
+
+		useEffect(() => {
+			handleMeasure();
+		}, [handleMeasure]);
+
+		// --- Dev capture effect ---
+		useEffect(() => {
+			if (!isDev || !id) return;
+			if (loading && !hasGeneratedSkeleton) return;
+
+			const captureTarget = attachedRef.current;
+			if (!captureTarget && !shouldRenderWrapper) return;
+
+			const timer = setTimeout(() => {
+				const root = captureHasWrapperRef.current
+					? (captureTarget?.firstElementChild ?? captureTarget)
+					: captureTarget;
+				if (!root) return;
+
+				captureElement(id, root);
+			}, 100);
+
+			return () => clearTimeout(timer);
+		}, [id, loading, shouldRenderWrapper, hasGeneratedSkeleton]);
+
+		// --- Imperative style update on skeleton root ---
+		useIsomorphicLayoutEffect(() => {
+			if (!loading || !Generated) return;
+			// Find the skeleton root element by data-sk-id
+			if (!id) return;
+			const generatedRoot = document.querySelector(
+				`[data-sk-id="${id}"]`,
+			) as HTMLElement | null;
+			if (!generatedRoot) return;
+
+			// Clean stale vars
+			for (let i = generatedRoot.style.length - 1; i >= 0; i -= 1) {
+				const prop = generatedRoot.style.item(i);
+				if (prop.startsWith("--sk-w-")) {
+					const key = prop.slice("--sk-w-".length);
+					if (!widthsToApply || !(key in widthsToApply)) {
+						generatedRoot.style.removeProperty(prop);
+					}
+				}
+				if (prop.startsWith("--sk-h-")) {
+					const key = prop.slice("--sk-h-".length);
+					if (!heightsToApply || !(key in heightsToApply)) {
+						generatedRoot.style.removeProperty(prop);
+					}
+				}
+			}
+
+			if (widthsToApply) {
+				for (const [key, value] of Object.entries(widthsToApply)) {
+					if (!Number.isFinite(value) || value < 0) continue;
+					generatedRoot.style.setProperty(`--sk-w-${key}`, `${value}px`);
+				}
+			}
+
+			if (heightsToApply) {
+				for (const [key, value] of Object.entries(heightsToApply)) {
+					if (!Number.isFinite(value) || value < 0) continue;
+					generatedRoot.style.setProperty(`--sk-h-${key}`, `${value}px`);
+				}
+			}
+		}, [id, loading, Generated, widthsToApply, heightsToApply]);
+
+		// --- Render ---
+		if (hasGeneratedSkeleton && Generated) {
+			const skeleton = (
+				<SkeletonContext.Provider value={true}>
+					<Generated
+						variant={variant}
+						className={generatedClassName}
+						style={skeletonRootStyle}
+						dataSkId={id}
+					/>
+				</SkeletonContext.Provider>
+			);
+
+			if (!isDev) return skeleton;
+
+			// Dev: skeleton + children off-screen pour détecter les changements et re-capturer
+			captureHasWrapperRef.current = true;
+			return (
+				<>
+					{skeleton}
+					<div
+						ref={(el) => {
+							attachedRef.current = el;
+							if (el) applyParentLayout(el);
+						}}
+						aria-hidden="true"
+						style={OFF_SCREEN_STYLE}
+					>
+						{children}
+					</div>
+				</>
+			);
+		}
+
+		if (directRefChild) {
+			return <>{directRefChild}</>;
+		}
+
+		if (children == null) {
+			return null;
+		}
+
+		attachedRef.current = null;
 		return (
-			<>
-				{skeleton}
-				<div
-					ref={(el) => {
-						attachedRef.current = el;
-						if (el) applyParentLayout(el);
-					}}
-					aria-hidden="true"
-					style={OFF_SCREEN_STYLE}
-				>
-					{children}
-				</div>
-			</>
+			<div
+				data-loaded-wrapper="true"
+				ref={(el) => {
+					attachedRef.current = el;
+					setRef(externalRef, el);
+				}}
+				style={{ display: "contents" }}
+				{...forwardedRest}
+			>
+				{children}
+			</div>
 		);
-	}
-
-	if (directRefChild) {
-		return <>{directRefChild}</>;
-	}
-
-	if (children == null) {
-		return null;
-	}
-
-	attachedRef.current = null;
-	return (
-		<div
-			data-loaded-wrapper="true"
-			ref={(el) => {
-				attachedRef.current = el;
-				setRef(externalRef, el);
-			}}
-			style={{ display: "contents" }}
-			{...forwardedRest}
-		>
-			{children}
-		</div>
-	);
-},
+	},
 );

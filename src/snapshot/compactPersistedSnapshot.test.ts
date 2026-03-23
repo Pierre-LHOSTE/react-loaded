@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PersistedSkeletonSnapshot } from "../types";
+import { requireValue } from "../utils/require-value";
 import {
 	compactPersistedSnapshot,
 	parsePersistedSnapshot,
@@ -99,8 +100,12 @@ describe("compactPersistedSnapshot", () => {
 		} as PersistedSkeletonSnapshot;
 
 		const result = compactPersistedSnapshot(snapshot, { maxSkeletons: 2 });
-		expect(Object.keys(result.c!)).toHaveLength(2);
-		expect(Object.keys(result.w!)).toHaveLength(2);
+		expect(
+			Object.keys(requireValue(result.c, "Expected compacted counts to exist")),
+		).toHaveLength(2);
+		expect(
+			Object.keys(requireValue(result.w, "Expected compacted widths to exist")),
+		).toHaveLength(2);
 	});
 
 	it("respects maxTextKeysPerSkeleton option", () => {
@@ -111,7 +116,11 @@ describe("compactPersistedSnapshot", () => {
 		const result = compactPersistedSnapshot(snapshot, {
 			maxTextKeysPerSkeleton: 2,
 		});
-		expect(Object.keys(result.w!.card)).toHaveLength(2);
+		expect(
+			Object.keys(
+				requireValue(result.w, "Expected compacted widths to exist").card,
+			),
+		).toHaveLength(2);
 	});
 
 	it("rounds numbers when decimals option is set", () => {
@@ -121,9 +130,17 @@ describe("compactPersistedSnapshot", () => {
 		} as PersistedSkeletonSnapshot;
 
 		const result = compactPersistedSnapshot(snapshot, { decimals: 1 });
-		expect(result.w!.card.t0).toBe(123.5);
-		expect(result.wd!.feed.t0.avg).toBe(100.1);
-		expect(result.wd!.feed.t0.dev).toBe(10.7);
+		expect(
+			requireValue(result.w, "Expected rounded widths to exist").card.t0,
+		).toBe(123.5);
+		expect(
+			requireValue(result.wd, "Expected rounded width distributions to exist")
+				.feed.t0.avg,
+		).toBe(100.1);
+		expect(
+			requireValue(result.wd, "Expected rounded width distributions to exist")
+				.feed.t0.dev,
+		).toBe(10.7);
 	});
 
 	it("returns empty sections when snapshot has undefined sections", () => {

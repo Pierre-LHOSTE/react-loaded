@@ -26,6 +26,7 @@ import { transform } from "sucrase";
 import { describe, expect, it } from "vitest";
 import { generateComponent } from "../generator/to-jsx";
 import type { CapturedNode } from "../types";
+import { requireValue } from "../utils/require-value";
 
 // ---------------------------------------------------------------------------
 // Helper: evaluate a generated component source string into a real React
@@ -255,7 +256,10 @@ describe("skeleton layout fidelity", () => {
 			const textEl = root.querySelector(".loaded-text") as HTMLElement;
 			expect(textEl).not.toBeNull();
 			expect(textEl.textContent).toBe("•••••••••• •••••••");
-			expect(textEl.textContent!.length).toBeGreaterThan(0);
+			expect(
+				requireValue(textEl.textContent, "Missing text content for div-text")
+					.length,
+			).toBeGreaterThan(0);
 		});
 	});
 
@@ -305,7 +309,9 @@ describe("skeleton layout fidelity", () => {
 			const em = root.querySelector("em.loaded-text") as HTMLElement;
 			expect(em).not.toBeNull();
 			expect(em.textContent).toBe("••••••••");
-			expect(em.textContent!.length).toBeGreaterThan(0);
+			expect(
+				requireValue(em.textContent, "Missing text content for em-text").length,
+			).toBeGreaterThan(0);
 		});
 
 		it("inline elements get display: inline-block + explicit width for exact sizing", () => {
@@ -467,7 +473,10 @@ describe("skeleton layout fidelity", () => {
 
 			const span = root.querySelector(".loaded-text") as HTMLElement;
 			expect(span).not.toBeNull();
-			expect(span.textContent!.length).toBeGreaterThan(0);
+			expect(
+				requireValue(span.textContent, "Missing text content for fit-content")
+					.length,
+			).toBeGreaterThan(0);
 		});
 	});
 
@@ -542,7 +551,9 @@ describe("skeleton layout fidelity", () => {
 			const textEl = root.querySelector(".loaded-text");
 			expect(svgEl).not.toBeNull();
 			expect(textEl).not.toBeNull();
-			expect(textEl!.textContent).toBe("•••• •••••••");
+			expect(
+				requireValue(textEl, "Missing button ghost text element").textContent,
+			).toBe("•••• •••••••");
 		});
 
 		it("button (root, with children) shows placeholder in filled mode", () => {
@@ -671,7 +682,10 @@ describe("skeleton layout fidelity", () => {
 			expect(span).not.toBeNull();
 
 			expect(h3.textContent).toBe("••••• ••••• ••••");
-			expect(p.textContent!.length).toBeGreaterThan(0);
+			expect(
+				requireValue(p.textContent, "Missing post-card paragraph content")
+					.length,
+			).toBeGreaterThan(0);
 			expect(span.textContent).toBe("•• •••• •");
 		});
 
