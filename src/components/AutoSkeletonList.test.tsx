@@ -7,6 +7,7 @@ import { LoadedProvider } from "./LoadedProvider";
 vi.mock("./AutoSkeleton", () => ({
 	AutoSkeleton: ({
 		id,
+		loading,
 		animate = true,
 		variant = "filled",
 		_textWidths,
@@ -14,6 +15,7 @@ vi.mock("./AutoSkeleton", () => ({
 		children,
 	}: {
 		id: string;
+		loading: boolean;
 		animate?: boolean;
 		variant?: "filled" | "ghost";
 		_textWidths?: Record<string, number>;
@@ -23,10 +25,13 @@ vi.mock("./AutoSkeleton", () => ({
 		<div
 			data-testid="auto-skeleton"
 			data-id={id}
+			data-loading={String(loading)}
 			data-animate={String(animate)}
 			data-variant={variant}
-			data-w={JSON.stringify(_textWidths ?? null)}
-			data-h={JSON.stringify(_textHeights ?? null)}
+			data-text-widths={_textWidths ? JSON.stringify(_textWidths) : undefined}
+			data-text-heights={
+				_textHeights ? JSON.stringify(_textHeights) : undefined
+			}
 		>
 			{children}
 		</div>
@@ -44,7 +49,7 @@ const items: ListItem[] = [
 ];
 
 const renderItem = (item: ListItem) => (
-	<div>
+	<div data-testid={`item-${item.id}`}>
 		<span>{item.label}</span>
 	</div>
 );
@@ -60,7 +65,7 @@ describe("AutoSkeletonList", () => {
 		localStorage.clear();
 	});
 
-	it("renders skeletons while loading", () => {
+	it("renders defaultCount skeletons while loading", () => {
 		render(
 			<AutoSkeletonList
 				id="notification-item"
@@ -69,7 +74,6 @@ describe("AutoSkeletonList", () => {
 				renderItem={renderItem}
 				renderSkeleton={renderSkeleton}
 				defaultCount={2}
-				storageKey="auto-skeleton-list-test"
 			/>,
 		);
 
@@ -77,7 +81,21 @@ describe("AutoSkeletonList", () => {
 		expect(screen.getAllByTestId("skeleton-item")).toHaveLength(2);
 	});
 
-	it("passes id, variant and animate props to item skeleton wrappers", () => {
+	it("defaults to 3 skeletons when defaultCount is not specified", () => {
+		render(
+			<AutoSkeletonList
+				id="default-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+			/>,
+		);
+
+		expect(screen.getAllByTestId("auto-skeleton")).toHaveLength(3);
+	});
+
+	it("passes id, variant and animate props to skeleton wrappers", () => {
 		render(
 			<AutoSkeletonList
 				id="comment-item"
@@ -88,7 +106,6 @@ describe("AutoSkeletonList", () => {
 				defaultCount={1}
 				animate={false}
 				variant="ghost"
-				storageKey="auto-skeleton-list-ghost"
 			/>,
 		);
 
@@ -108,7 +125,6 @@ describe("AutoSkeletonList", () => {
 				renderSkeleton={renderSkeleton}
 				defaultCount={10}
 				maxCount={4}
-				storageKey="auto-skeleton-list-max"
 			/>,
 		);
 
@@ -125,7 +141,6 @@ describe("AutoSkeletonList", () => {
 				renderSkeleton={renderSkeleton}
 				defaultCount={0}
 				minCount={2}
-				storageKey="auto-skeleton-list-min"
 			/>,
 		);
 
@@ -140,41 +155,12 @@ describe("AutoSkeletonList", () => {
 				items={items}
 				renderItem={renderItem}
 				renderSkeleton={renderSkeleton}
-				storageKey="auto-skeleton-list-loaded"
 			/>,
 		);
 
 		expect(screen.getByText("Item 1")).toBeInTheDocument();
 		expect(screen.getByText("Item 2")).toBeInTheDocument();
 		expect(screen.queryByTestId("auto-skeleton")).not.toBeInTheDocument();
-	});
-
-	it("persists skeleton count from loaded items", async () => {
-		const { rerender } = render(
-			<AutoSkeletonList
-				id="feed-item"
-				loading={false}
-				items={[...items, { id: 3, label: "Item 3" }]}
-				renderItem={renderItem}
-				renderSkeleton={renderSkeleton}
-				storageKey="auto-skeleton-list-persist"
-			/>,
-		);
-
-		rerender(
-			<AutoSkeletonList
-				id="feed-item"
-				loading={true}
-				items={undefined}
-				renderItem={renderItem}
-				renderSkeleton={renderSkeleton}
-				storageKey="auto-skeleton-list-persist"
-			/>,
-		);
-
-		await waitFor(() => {
-			expect(screen.getAllByTestId("auto-skeleton")).toHaveLength(3);
-		});
 	});
 
 	it("returns null when not loading and items are empty", () => {
@@ -185,32 +171,10 @@ describe("AutoSkeletonList", () => {
 				items={[]}
 				renderItem={renderItem}
 				renderSkeleton={renderSkeleton}
-				storageKey="auto-skeleton-list-empty"
 			/>,
 		);
 
 		expect(container).toBeEmptyDOMElement();
-	});
-
-	it("uses custom keyExtractor for rendered items", () => {
-		const { container } = render(
-			<AutoSkeletonList
-				id="keyed-item"
-				loading={false}
-				items={items}
-				renderItem={(item) => (
-					<div data-testid={`item-${item.id}`}>{item.label}</div>
-				)}
-				renderSkeleton={renderSkeleton}
-				keyExtractor={(item) => item.id}
-				storageKey="auto-skeleton-list-keyed"
-			/>,
-		);
-
-		expect(screen.getByTestId("item-1")).toBeInTheDocument();
-		expect(screen.getByTestId("item-2")).toBeInTheDocument();
-		// Items are wrapped in a display:contents measure div
-		expect(container.firstElementChild?.children).toHaveLength(2);
 	});
 
 	it("returns null when not loading and items is undefined", () => {
@@ -221,11 +185,74 @@ describe("AutoSkeletonList", () => {
 				items={undefined}
 				renderItem={renderItem}
 				renderSkeleton={renderSkeleton}
-				storageKey="auto-skeleton-list-undef"
 			/>,
 		);
 
 		expect(container).toBeEmptyDOMElement();
+	});
+
+	it("uses custom keyExtractor for rendered items", () => {
+		render(
+			<AutoSkeletonList
+				id="keyed-item"
+				loading={false}
+				items={items}
+				renderItem={(item) => (
+					<div data-testid={`item-${item.id}`}>{item.label}</div>
+				)}
+				renderSkeleton={renderSkeleton}
+				keyExtractor={(item) => item.id}
+			/>,
+		);
+
+		expect(screen.getByTestId("item-1")).toBeInTheDocument();
+		expect(screen.getByTestId("item-2")).toBeInTheDocument();
+	});
+
+	it("persists skeleton count from loaded items via storageKey", async () => {
+		const { rerender } = render(
+			<AutoSkeletonList
+				id="feed-item"
+				loading={false}
+				items={[...items, { id: 3, label: "Item 3" }]}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="feed-persist"
+				defaultCount={1}
+			/>,
+		);
+
+		rerender(
+			<AutoSkeletonList
+				id="feed-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="feed-persist"
+				defaultCount={1}
+			/>,
+		);
+
+		await waitFor(() => {
+			expect(screen.getAllByTestId("auto-skeleton")).toHaveLength(3);
+		});
+	});
+
+	it("uses defaultCount when no persisted count exists", () => {
+		render(
+			<AutoSkeletonList
+				id="no-persist-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="no-persist"
+				defaultCount={5}
+			/>,
+		);
+
+		expect(screen.getAllByTestId("auto-skeleton")).toHaveLength(5);
 	});
 
 	it("propagates variant to each skeleton wrapper", () => {
@@ -238,7 +265,6 @@ describe("AutoSkeletonList", () => {
 				renderSkeleton={renderSkeleton}
 				defaultCount={2}
 				variant="ghost"
-				storageKey="auto-skeleton-list-variant"
 			/>,
 		);
 
@@ -258,7 +284,6 @@ describe("AutoSkeletonList", () => {
 				renderSkeleton={renderSkeleton}
 				defaultCount={2}
 				animate={false}
-				storageKey="auto-skeleton-list-anim"
 			/>,
 		);
 
@@ -268,130 +293,217 @@ describe("AutoSkeletonList", () => {
 		}
 	});
 
-	it("uses persisted snapshot count and wd immediately", () => {
-		render(
-			<LoadedProvider
-				registry={{}}
-				persistedSnapshot={{
-					c: { "feed-list": 4 },
-					wd: {
-						"feed-list": {
-							t0: { avg: 110, dev: 20 },
-							t1: { avg: 210, dev: 40 },
-						},
-					},
-				}}
-			>
-				<AutoSkeletonList
-					id="feed-item"
-					loading={true}
-					items={undefined}
-					renderItem={renderItem}
-					renderSkeleton={renderSkeleton}
-					storageKey="feed-list"
-					defaultCount={1}
-				/>
-			</LoadedProvider>,
+	it("clamps persisted count within minCount/maxCount", async () => {
+		const { rerender } = render(
+			<AutoSkeletonList
+				id="clamp-item"
+				loading={false}
+				items={[{ id: 1, label: "A" }]}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="clamp-persist"
+				defaultCount={3}
+				minCount={2}
+			/>,
 		);
 
-		const skeletons = screen.getAllByTestId("auto-skeleton");
-		expect(skeletons).toHaveLength(4);
-		for (const skeleton of skeletons) {
-			const w = JSON.parse(skeleton.getAttribute("data-w") ?? "null");
-			expect(w).not.toBeNull();
-			expect(typeof w.t0).toBe("number");
-			expect(typeof w.t1).toBe("number");
-		}
-	});
-
-	it("uses persisted snapshot height wd immediately", () => {
-		render(
-			<LoadedProvider
-				registry={{}}
-				persistedSnapshot={{
-					c: { "feed-list": 3 },
-					wd: {
-						"feed-list": {
-							t0: { avg: 110, dev: 20 },
-						},
-					},
-					hd: {
-						"feed-list": {
-							t0: { avg: 20, dev: 3 },
-						},
-					},
-				}}
-			>
-				<AutoSkeletonList
-					id="feed-item"
-					loading={true}
-					items={undefined}
-					renderItem={renderItem}
-					renderSkeleton={renderSkeleton}
-					storageKey="feed-list"
-					defaultCount={1}
-				/>
-			</LoadedProvider>,
+		// items.length = 1 but minCount = 2, so skeleton count should be clamped to 2
+		rerender(
+			<AutoSkeletonList
+				id="clamp-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="clamp-persist"
+				defaultCount={3}
+				minCount={2}
+			/>,
 		);
 
-		const skeletons = screen.getAllByTestId("auto-skeleton");
-		expect(skeletons).toHaveLength(3);
-		for (const skeleton of skeletons) {
-			const h = JSON.parse(skeleton.getAttribute("data-h") ?? "null");
-			expect(h).not.toBeNull();
-			expect(typeof h.t0).toBe("number");
-		}
+		await waitFor(() => {
+			expect(screen.getAllByTestId("auto-skeleton")).toHaveLength(2);
+		});
 	});
 
-	it("generates deterministic w for the same seed", () => {
-		const snapshot = {
-			c: { "det-list": 3 },
-			wd: {
-				"det-list": {
-					t0: { avg: 100, dev: 15 },
-					t1: { avg: 200, dev: 30 },
+	it("passes loading=true to AutoSkeleton wrappers during loading", () => {
+		render(
+			<AutoSkeletonList
+				id="loading-prop"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				defaultCount={1}
+			/>,
+		);
+
+		const skeleton = screen.getByTestId("auto-skeleton");
+		expect(skeleton).toHaveAttribute("data-loading", "true");
+	});
+
+	it("passes _textWidths and _textHeights from distributions to each AutoSkeleton", () => {
+		// Pre-populate localStorage with distributions
+		const STORAGE_KEY = "react-loaded";
+		localStorage.setItem(
+			STORAGE_KEY,
+			JSON.stringify({
+				v: 2,
+				c: {},
+				w: {},
+				h: {},
+				wd: {
+					"dist-key": {
+						t0: { avg: 100, dev: 10 },
+						t1: { avg: 200, dev: 20 },
+					},
 				},
-			},
-		};
+				hd: {
+					"dist-key": {
+						t0: { avg: 24, dev: 2 },
+					},
+				},
+			}),
+		);
+
+		render(
+			<AutoSkeletonList
+				id="dist-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="dist-key"
+				defaultCount={2}
+			/>,
+		);
+
+		const skeletons = screen.getAllByTestId("auto-skeleton");
+		expect(skeletons).toHaveLength(2);
+
+		// Each skeleton should have _textWidths and _textHeights
+		for (const s of skeletons) {
+			const widths = s.dataset.textWidths;
+			const heights = s.dataset.textHeights;
+			expect(widths).toBeDefined();
+			expect(heights).toBeDefined();
+
+			// Widths should have t0 and t1 keys
+			const parsed = JSON.parse(widths as string);
+			expect(parsed).toHaveProperty("t0");
+			expect(parsed).toHaveProperty("t1");
+			expect(typeof parsed.t0).toBe("number");
+		}
+	});
+
+	it("generates deterministic widths from distributions (same seed = same result)", () => {
+		const STORAGE_KEY = "react-loaded";
+		localStorage.setItem(
+			STORAGE_KEY,
+			JSON.stringify({
+				v: 2,
+				c: {},
+				w: {},
+				h: {},
+				wd: {
+					"det-key": {
+						t0: { avg: 100, dev: 10 },
+					},
+				},
+				hd: {},
+			}),
+		);
 
 		const { unmount } = render(
-			<LoadedProvider registry={{}} persistedSnapshot={snapshot}>
-				<AutoSkeletonList
-					id="det-item"
-					loading={true}
-					items={undefined}
-					renderItem={renderItem}
-					renderSkeleton={renderSkeleton}
-					storageKey="det-list"
-					defaultCount={1}
-				/>
-			</LoadedProvider>,
+			<AutoSkeletonList
+				id="det-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="det-key"
+				defaultCount={3}
+			/>,
 		);
 
-		const firstWidths = screen
+		const first = screen
 			.getAllByTestId("auto-skeleton")
-			.map((el) => el.getAttribute("data-w"));
+			.map((s) => s.dataset.textWidths);
 
 		unmount();
 
+		// Render again with same seed — should get same values
 		render(
-			<LoadedProvider registry={{}} persistedSnapshot={snapshot}>
+			<AutoSkeletonList
+				id="det-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				storageKey="det-key"
+				defaultCount={3}
+			/>,
+		);
+
+		const second = screen
+			.getAllByTestId("auto-skeleton")
+			.map((s) => s.dataset.textWidths);
+
+		expect(first).toEqual(second);
+	});
+
+	it("uses initialCount from SSR snapshot via LoadedProvider", () => {
+		render(
+			<LoadedProvider snapshot={{ v: 1, c: { "ssr-key": 5 } }}>
 				<AutoSkeletonList
-					id="det-item"
+					id="ssr-item"
 					loading={true}
 					items={undefined}
 					renderItem={renderItem}
 					renderSkeleton={renderSkeleton}
-					storageKey="det-list"
-					defaultCount={1}
+					storageKey="ssr-key"
+					defaultCount={2}
 				/>
 			</LoadedProvider>,
 		);
 
-		const secondWidths = screen
-			.getAllByTestId("auto-skeleton")
-			.map((el) => el.getAttribute("data-w"));
+		expect(screen.getAllByTestId("auto-skeleton")).toHaveLength(5);
+	});
 
-		expect(firstWidths).toEqual(secondWidths);
+	it("uses initialDistributions from SSR snapshot to generate widths", () => {
+		render(
+			<LoadedProvider
+				snapshot={{
+					v: 1,
+					wd: {
+						"ssr-dist-key": {
+							t0: { avg: 150, dev: 15 },
+						},
+					},
+				}}
+			>
+				<AutoSkeletonList
+					id="ssr-dist-item"
+					loading={true}
+					items={undefined}
+					renderItem={renderItem}
+					renderSkeleton={renderSkeleton}
+					storageKey="ssr-dist-key"
+					defaultCount={2}
+				/>
+			</LoadedProvider>,
+		);
+
+		const skeletons = screen.getAllByTestId("auto-skeleton");
+		expect(skeletons).toHaveLength(2);
+
+		// Should have generated widths from the snapshot distributions
+		for (const s of skeletons) {
+			const widths = s.dataset.textWidths;
+			expect(widths).toBeDefined();
+			const parsed = JSON.parse(widths as string);
+			expect(parsed).toHaveProperty("t0");
+			expect(typeof parsed.t0).toBe("number");
+		}
 	});
 });

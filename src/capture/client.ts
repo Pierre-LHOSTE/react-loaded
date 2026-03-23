@@ -1,12 +1,12 @@
-import { dismissByKey, showToast } from "../notifications/toast";
 import type { CapturePayload } from "../types";
-
-export interface CaptureConfig {
-	port?: number;
-	url?: string;
-}
+import { serializeElement } from "./serialize";
 
 let captureUrl = "http://127.0.0.1:7331";
+
+export interface CaptureConfig {
+	url?: string;
+	port?: number;
+}
 
 export function configureCapture(options: CaptureConfig): void {
 	if (options.url) {
@@ -17,28 +17,18 @@ export function configureCapture(options: CaptureConfig): void {
 }
 
 export function sendCapture(payload: CapturePayload): void {
-	fetch(captureUrl, {
+	fetch(`${captureUrl}/capture`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(payload),
-	})
-		.then((res) => res.json())
-		.then((data: { ok?: boolean; id?: string; result?: string }) => {
-			if (!data.ok || !data.id) return;
+	}).catch(() => {
+		// Server not running — silently ignore
+	});
+}
 
-			if (data.result === "no_change") {
-				dismissByKey(`capture-${data.id}`);
-				return;
-			}
+export function captureElement(id: string, element: Element): void {
+	const tree = serializeElement(element);
+	if (!tree) return;
 
-			showToast({
-				message: `"${data.id}" ${data.result === "updated" ? "updated" : "generated"}`,
-				sub: "Refresh the page to see the skeleton.",
-				type: "success",
-				key: `capture-${data.id}`,
-			});
-		})
-		.catch(() => {
-			// Server not running — silently ignore
-		});
+	sendCapture({ id, tree, timestamp: Date.now() });
 }

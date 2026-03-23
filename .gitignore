@@ -1,8 +1,8 @@
 node_modules
-dist/
+dist
+coverage
 *.log
 .DS_Store
-.benchmarks
-coverage
 .artifacts
 *.tgz
+.vscode

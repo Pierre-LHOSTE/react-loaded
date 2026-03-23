@@ -7,12 +7,11 @@ import {
 	useRef,
 	useState,
 } from "react";
-import type { Distribution } from "../hooks/storage";
-import { usePersistedCount } from "../hooks/usePersistedCount";
-import { usePersistedDistribution } from "../hooks/usePersistedDistribution";
-import { usePersistedHeightDistribution } from "../hooks/usePersistedHeightDistribution";
-import type { SkeletonProps } from "../types";
-import { collectTextDimensions } from "../utils/collect-text-widths";
+import { usePersistedCount } from "../storage/usePersistedCount";
+import { usePersistedDistribution } from "../storage/usePersistedDistribution";
+import { usePersistedHeightDistribution } from "../storage/usePersistedHeightDistribution";
+import type { Distribution } from "../types";
+import { collectTextDimensions } from "../utils/collect-text-dimensions";
 import { AutoSkeleton } from "./AutoSkeleton";
 import {
 	useInitialCountSnapshot,
@@ -21,29 +20,17 @@ import {
 } from "./LoadedProvider";
 
 export interface AutoSkeletonListProps<T> {
-	/** Skeleton registry id used for each loading row. */
 	id: string;
-	/** Whether the list is currently loading. Default: false */
 	loading?: boolean;
-	/** The items to render. Pass undefined while loading. */
 	items: T[] | undefined;
-	/** Render function for each item when loaded. */
 	renderItem: (item: T, index: number) => ReactElement;
-	/** Render function for each loading row source element. */
 	renderSkeleton: (index: number) => ReactElement;
-	/** Key for localStorage persistence. Without it, count resets on remount. */
 	storageKey?: string;
-	/** Initial skeleton count before any data is known. Default: 3 */
 	defaultCount?: number;
-	/** Minimum skeletons to show. Default: 1 */
 	minCount?: number;
-	/** Maximum skeletons to show. */
 	maxCount?: number;
-	/** Enable shimmer animation. Default: true */
 	animate?: boolean;
-	/** Visual variant for skeleton surface. Default: "filled" */
-	variant?: SkeletonProps["variant"];
-	/** Extract unique key for each item. Default: index */
+	variant?: "filled" | "ghost";
 	keyExtractor?: (item: T, index: number) => string | number;
 }
 
@@ -97,16 +84,16 @@ export function AutoSkeletonList<T>({
 	defaultCount = 3,
 	minCount = 1,
 	maxCount,
-	animate = true,
-	variant = "filled",
+	animate,
+	variant,
 	keyExtractor = (_, index) => index,
-}: AutoSkeletonListProps<T>): ReactElement | null {
+}: AutoSkeletonListProps<T>) {
 	const initialCount = useInitialCountSnapshot(storageKey);
 	const initialDistributions = useInitialDistributionSnapshot(storageKey);
 	const initialHeightDistributions =
 		useInitialHeightDistributionSnapshot(storageKey);
 
-	const skeletonCount = usePersistedCount({
+	const count = usePersistedCount({
 		storageKey,
 		defaultCount,
 		currentCount: items?.length,
@@ -168,36 +155,36 @@ export function AutoSkeletonList<T>({
 	const seed = storageKey ?? id;
 	const generatedWidths = useMemo(() => {
 		if (!distributions) return null;
-		return generateWidthsFromDistribution(distributions, skeletonCount, seed);
-	}, [distributions, skeletonCount, seed]);
+		return generateWidthsFromDistribution(distributions, count, seed);
+	}, [distributions, count, seed]);
 
 	const generatedHeights = useMemo(() => {
 		if (!heightDistributions) return null;
 		return generateWidthsFromDistribution(
 			heightDistributions,
-			skeletonCount,
+			count,
 			`${seed}:h`,
 		);
-	}, [heightDistributions, skeletonCount, seed]);
+	}, [heightDistributions, count, seed]);
 
 	if (loading) {
-		const skeletons = new Array(skeletonCount);
-		for (let index = 0; index < skeletonCount; index += 1) {
-			skeletons[index] = (
-				<AutoSkeleton
-					key={`skeleton-${index}`}
-					id={id}
-					animate={animate}
-					variant={variant}
-					_textWidths={generatedWidths?.[index]}
-					_textHeights={generatedHeights?.[index]}
-				>
-					{renderSkeleton(index)}
-				</AutoSkeleton>
-			);
-		}
-
-		return <>{skeletons}</>;
+		return (
+			<>
+				{Array.from({ length: count }, (_, index) => (
+					<AutoSkeleton
+						key={index}
+						id={id}
+						loading={true}
+						animate={animate}
+						variant={variant}
+						_textWidths={generatedWidths?.[index]}
+						_textHeights={generatedHeights?.[index]}
+					>
+						{renderSkeleton(index)}
+					</AutoSkeleton>
+				))}
+			</>
+		);
 	}
 
 	if (!items || items.length === 0) {

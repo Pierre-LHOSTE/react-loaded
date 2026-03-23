@@ -98,6 +98,20 @@ describe("handleCapture", () => {
 		expect(alphaIndex).toBeLessThan(zebraIndex);
 	});
 
+	it("includes captureUrl in registry when provided", () => {
+		const outDir = mkdtempSync(join(tmpdir(), "autoskeleton-handle-capture-"));
+		createdDirs.push(outDir);
+
+		handleCapture(
+			makePayload("my-card", "Hello"),
+			outDir,
+			"http://localhost:9999",
+		);
+		const registry = readFileSync(join(outDir, "registry.ts"), "utf-8");
+
+		expect(registry).toContain("http://localhost:9999");
+	});
+
 	it("throws on path traversal attempt", () => {
 		const outDir = mkdtempSync(join(tmpdir(), "autoskeleton-handle-capture-"));
 		createdDirs.push(outDir);

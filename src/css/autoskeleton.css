@@ -6,6 +6,13 @@
 	--loaded-shimmer-duration: 1.5s;
 }
 
+@media (prefers-color-scheme: dark) {
+	:root {
+		--loaded-bg: rgba(55, 65, 81, 1);
+		--loaded-content: rgba(107, 114, 128, 0.6);
+	}
+}
+
 .loaded-skeleton {
 	user-select: none;
 	pointer-events: none;
@@ -21,6 +28,7 @@
 	pointer-events: auto;
 }
 
+/* Nuke everything: make all colors, backgrounds, borders, shadows transparent */
 .loaded-skeleton,
 .loaded-skeleton * {
 	color: transparent !important;
@@ -31,10 +39,12 @@
 	text-shadow: none !important;
 }
 
+/* Push images off-screen to hide content while preserving layout */
 .loaded-skeleton img {
 	object-position: -9999px -9999px !important;
 }
 
+/* Pseudo-elements: same transparent overrides */
 .loaded-skeleton *::before,
 .loaded-skeleton *::after {
 	background: transparent !important;
@@ -45,25 +55,26 @@
 	text-shadow: none !important;
 }
 
+/* Input placeholders */
 .loaded-skeleton ::placeholder {
 	color: transparent !important;
 	opacity: 0 !important;
 }
 
-/* Background fill for the root skeleton container */
+/* Background fill for the root skeleton container (variant="filled") */
 .loaded-skeleton.loaded-bg {
 	background-color: var(--loaded-bg) !important;
 }
 
-/* Text skeleton: pseudo-element bar */
+/* Text skeleton: positioned container for pseudo-element bar */
 .loaded-skeleton .loaded-text {
 	position: relative;
-	display: inline-block;
 	min-width: var(--loaded-text-width, 0) !important;
 	min-height: var(--loaded-text-height, auto) !important;
 	background-color: transparent !important;
 }
 
+/* Text skeleton bar (pseudo-element) */
 .loaded-skeleton .loaded-text::before {
 	content: var(--loaded-text-content, "") !important;
 	position: absolute !important;
@@ -82,11 +93,13 @@
 	transform: none !important;
 }
 
+/* Text alignment: center */
 .loaded-skeleton .loaded-text[data-loaded-align="center"]::before {
 	left: 50% !important;
 	transform: translateX(-50%) !important;
 }
 
+/* Text alignment: right */
 .loaded-skeleton .loaded-text[data-loaded-align="right"]::before {
 	left: auto !important;
 	right: 0 !important;
@@ -119,7 +132,7 @@
 	visibility: hidden !important;
 }
 
-/* Shimmer animation */
+/* Shimmer animation (opacity pulse) */
 @keyframes loaded-shimmer {
 	0% {
 		opacity: 1;
