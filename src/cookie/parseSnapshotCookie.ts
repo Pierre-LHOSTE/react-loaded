@@ -1,5 +1,5 @@
-import type { PersistedSkeletonSnapshot } from "../components/LoadedProvider";
-import { parsePersistedSnapshot } from "../server/persistedSnapshot";
+import { parsePersistedSnapshot } from "../snapshot/compactPersistedSnapshot";
+import type { PersistedSkeletonSnapshot } from "../types";
 
 function tryDecodeURIComponent(value: string): string {
 	try {

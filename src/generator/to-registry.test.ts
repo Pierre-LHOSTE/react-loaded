@@ -1,54 +1,89 @@
 import { describe, expect, it } from "vitest";
 import { generateRegistry } from "./to-registry";
 
+describe("toExportName (via generateRegistry output)", () => {
+	it("converts a simple kebab-case id to PascalCase + Skeleton suffix", () => {
+		const output = generateRegistry(["user-card"]);
+
+		expect(output).toContain("import { UserCardSkeleton }");
+		expect(output).toContain('"user-card": UserCardSkeleton');
+	});
+
+	it("converts a single word id", () => {
+		const output = generateRegistry(["profile"]);
+
+		expect(output).toContain("import { ProfileSkeleton }");
+		expect(output).toContain('"profile": ProfileSkeleton');
+	});
+
+	it("handles ids with special characters", () => {
+		const output = generateRegistry(["my@comp!onent"]);
+
+		expect(output).toContain("MyCompOnentSkeleton");
+	});
+
+	it("falls back to 'Skeleton' for ids with only special characters", () => {
+		const output = generateRegistry(["@#$%"]);
+
+		expect(output).toContain("import { Skeleton }");
+		expect(output).toContain('"@#$%": Skeleton');
+	});
+});
+
 describe("generateRegistry", () => {
 	it("generates an empty registry when no ids are provided", () => {
 		const output = generateRegistry([]);
 
 		expect(output).toContain(
-			"export const registry: Record<string, ComponentType> = {};",
+			"export const registry: Record<string, ComponentType<any>> = {};",
 		);
-		expect(output).not.toContain('from "./');
+		expect(output).not.toContain("import {");
 	});
 
-	it("generates imports and mappings for provided ids", () => {
-		const output = generateRegistry(["user-card", "profile_header"]);
+	it("generates import lines and registry entries for multiple ids", () => {
+		const output = generateRegistry(["card", "avatar"]);
 
-		expect(output).toContain('import { UserCardSkeleton } from "./user-card";');
-		expect(output).toContain(
-			'import { ProfileHeaderSkeleton } from "./profile_header";',
-		);
-		expect(output).toContain('"user-card": UserCardSkeleton,');
-		expect(output).toContain('"profile_header": ProfileHeaderSkeleton,');
+		expect(output).toContain('import { AvatarSkeleton } from "./avatar";');
+		expect(output).toContain('import { CardSkeleton } from "./card";');
+		expect(output).toContain('"avatar": AvatarSkeleton,');
+		expect(output).toContain('"card": CardSkeleton,');
 	});
 
-	it("does not include captureConfig by default", () => {
-		const output = generateRegistry(["user-card"]);
+	it("sorts ids alphabetically", () => {
+		const output = generateRegistry(["zebra", "alpha", "middle"]);
+
+		const alphaIdx = output.indexOf("alpha");
+		const middleIdx = output.indexOf("middle");
+		const zebraIdx = output.indexOf("zebra");
+
+		expect(alphaIdx).toBeLessThan(middleIdx);
+		expect(middleIdx).toBeLessThan(zebraIdx);
+	});
+
+	it("always imports ComponentType from react", () => {
+		const output = generateRegistry([]);
+
+		expect(output).toContain('import type { ComponentType } from "react";');
+	});
+
+	it("adds captureConfig metadata when captureUrl is provided", () => {
+		const output = generateRegistry(["card"], {
+			captureUrl: "http://localhost:3001",
+		});
+
+		expect(output).toContain("__captureConfig__");
+		expect(output).toContain('"http://localhost:3001"');
+	});
+
+	it("does not add captureConfig when captureUrl is omitted", () => {
+		const output = generateRegistry(["card"]);
+
 		expect(output).not.toContain("__captureConfig__");
 	});
 
-	it("includes captureConfig when captureUrl option is provided", () => {
-		const output = generateRegistry(["user-card"], {
-			captureUrl: "http://127.0.0.1:9000",
-		});
+	it("closes the registry object for non-empty registries", () => {
+		const output = generateRegistry(["card"]);
 
-		expect(output).toContain("__captureConfig__");
-		expect(output).toContain('"http://127.0.0.1:9000"');
-		expect(output).toContain("enumerable: false");
-	});
-
-	it("throws on invalid id", () => {
-		expect(() => generateRegistry(["../bad-path"])).toThrow(
-			"Invalid skeleton id",
-		);
-	});
-
-	it("includes captureConfig on empty registry", () => {
-		const output = generateRegistry([], {
-			captureUrl: "http://127.0.0.1:7331",
-		});
-
-		expect(output).toContain("__captureConfig__");
-		expect(output).toContain('"http://127.0.0.1:7331"');
+		expect(output).toContain("};");
 	});
 });

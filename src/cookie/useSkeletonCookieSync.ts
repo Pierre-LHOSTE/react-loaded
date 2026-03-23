@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { STORAGE_UPDATE_EVENT } from "../hooks/storage";
+import { STORAGE_UPDATE_EVENT } from "../storage/storage";
 import {
 	type SyncSnapshotToCookieOptions,
 	syncSnapshotToCookie,

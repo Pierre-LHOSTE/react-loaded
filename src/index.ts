@@ -2,12 +2,11 @@ import "./css/autoskeleton.css";
 
 export {
 	type CaptureConfig,
+	captureElement,
 	configureCapture,
+	sendCapture,
 } from "./capture/client";
-export {
-	getClientPersistedSnapshot,
-	serializeClientPersistedSnapshot,
-} from "./client/persistedSnapshot";
+export { serializeElement } from "./capture/serialize";
 export {
 	AutoSkeleton,
 	type AutoSkeletonProps,
@@ -26,20 +25,38 @@ export {
 } from "./components/SkeletonContext";
 export { SNAPSHOT_COOKIE_NAME } from "./cookie/constants";
 export { parseSnapshotCookie } from "./cookie/parseSnapshotCookie";
-export { defineConfig, type ReactLoadedConfig } from "./define-config";
-export { type Distribution, STORAGE_UPDATE_EVENT } from "./hooks/storage";
 export {
-	type UsePersistedCountOptions,
-	usePersistedCount,
-} from "./hooks/usePersistedCount";
-export { usePersistedDistribution } from "./hooks/usePersistedDistribution";
-export { usePersistedHeightDistribution } from "./hooks/usePersistedHeightDistribution";
-export { usePersistedHeights } from "./hooks/usePersistedHeights";
-export { usePersistedWidths } from "./hooks/usePersistedWidths";
+	type SyncSnapshotToCookieOptions,
+	syncSnapshotToCookie,
+} from "./cookie/syncSnapshotToCookie";
+export { useSkeletonCookieSync } from "./cookie/useSkeletonCookieSync";
+export { defineConfig } from "./define-config";
+export {
+	getClientPersistedSnapshot,
+	serializeClientPersistedSnapshot,
+} from "./snapshot/clientSnapshot";
 export {
 	compactPersistedSnapshot,
 	type PersistedSnapshotCompactOptions,
 	parsePersistedSnapshot,
 	serializePersistedSnapshot,
-} from "./server/persistedSnapshot";
-export type { CapturedNode, CapturePayload, SkeletonRegistry } from "./types";
+} from "./snapshot/compactPersistedSnapshot";
+export { STORAGE_UPDATE_EVENT } from "./storage/storage";
+export {
+	type UsePersistedCountOptions,
+	usePersistedCount,
+} from "./storage/usePersistedCount";
+export { usePersistedDistribution } from "./storage/usePersistedDistribution";
+export { usePersistedHeightDistribution } from "./storage/usePersistedHeightDistribution";
+export { usePersistedHeights } from "./storage/usePersistedHeights";
+export { usePersistedWidths } from "./storage/usePersistedWidths";
+export type {
+	CapturedNode,
+	CapturePayload,
+	CaptureResult,
+	Distribution,
+	ReactLoadedConfig,
+	SkeletonRegistry,
+	StoragePayload,
+} from "./types";
+export { isValidId } from "./utils/validate-id";

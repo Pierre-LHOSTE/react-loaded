@@ -1,4 +1,4 @@
-import type { PersistedSnapshotCompactOptions } from "../server/persistedSnapshot";
+import type { PersistedSnapshotCompactOptions } from "../snapshot/compactPersistedSnapshot";
 
 export const SNAPSHOT_COOKIE_NAME = "react-loaded-snapshot";
 export const COOKIE_SIZE_WARNING_THRESHOLD = 3800;

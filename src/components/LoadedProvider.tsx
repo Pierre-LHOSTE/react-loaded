@@ -6,29 +6,30 @@ import {
 	useRef,
 } from "react";
 import { configureCapture } from "../capture/client";
-import type { Distribution } from "../hooks/storage";
-import type { SkeletonRegistry } from "../types";
+import type {
+	Distribution,
+	PersistedSkeletonSnapshot,
+	SkeletonRegistry,
+} from "../types";
 
-export type PersistedSkeletonSnapshot = {
-	c?: Record<string, number>;
-	w?: Record<string, Record<string, number>>;
-	h?: Record<string, Record<string, number>>;
-	wd?: Record<string, Record<string, Distribution>>;
-	hd?: Record<string, Record<string, Distribution>>;
-};
+export interface LoadedProviderProps {
+	registry?: SkeletonRegistry;
+	// Keep the public prop name short; the persisted nature is already captured
+	// by the PersistedSkeletonSnapshot type.
+	snapshot?: PersistedSkeletonSnapshot | null;
+	children?: ReactNode;
+}
 
-const RegistryContext = createContext<SkeletonRegistry>({});
-const PersistedSnapshotContext = createContext<PersistedSkeletonSnapshot>({});
+export const LoadedContext = createContext<PersistedSkeletonSnapshot | null>(
+	null,
+);
+export const RegistryContext = createContext<SkeletonRegistry>({});
 
 export function LoadedProvider({
-	registry,
-	persistedSnapshot,
+	registry = {},
+	snapshot = null,
 	children,
-}: {
-	registry: SkeletonRegistry;
-	persistedSnapshot?: PersistedSkeletonSnapshot;
-	children: ReactNode;
-}) {
+}: LoadedProviderProps) {
 	const lastCaptureUrlRef = useRef<string | null>(null);
 
 	useEffect(() => {
@@ -38,17 +39,14 @@ export function LoadedProvider({
 		if (meta?.url && meta.url !== lastCaptureUrlRef.current) {
 			lastCaptureUrlRef.current = meta.url;
 			configureCapture({ url: meta.url });
-			if (process.env.NODE_ENV !== "production") {
-				console.debug(`[react-loaded] Capture configured → ${meta.url}`);
-			}
 		}
 	}, [registry]);
 
 	return (
 		<RegistryContext.Provider value={registry}>
-			<PersistedSnapshotContext.Provider value={persistedSnapshot ?? {}}>
+			<LoadedContext.Provider value={snapshot}>
 				{children}
-			</PersistedSnapshotContext.Provider>
+			</LoadedContext.Provider>
 		</RegistryContext.Provider>
 	);
 }
@@ -60,44 +58,46 @@ export function useRegistry(): SkeletonRegistry {
 export function useInitialWidthSnapshot(
 	skeletonId: string,
 ): Record<string, number> | null {
-	const snapshot = useContext(PersistedSnapshotContext);
-	const w = snapshot.w?.[skeletonId];
+	const snapshot = useContext(LoadedContext);
+	const w = snapshot?.w?.[skeletonId];
 	if (!w || Object.keys(w).length === 0) return null;
 	return w;
-}
-
-export function useInitialDistributionSnapshot(
-	storageKey?: string,
-): Record<string, Distribution> | null {
-	const snapshot = useContext(PersistedSnapshotContext);
-	if (!storageKey) return null;
-	const wd = snapshot.wd?.[storageKey];
-	if (!wd || Object.keys(wd).length === 0) return null;
-	return wd;
 }
 
 export function useInitialHeightSnapshot(
 	skeletonId: string,
 ): Record<string, number> | null {
-	const snapshot = useContext(PersistedSnapshotContext);
-	const h = snapshot.h?.[skeletonId];
+	const snapshot = useContext(LoadedContext);
+	const h = snapshot?.h?.[skeletonId];
 	if (!h || Object.keys(h).length === 0) return null;
 	return h;
+}
+
+export function useInitialCountSnapshot(storageKey?: string): number | null {
+	const snapshot = useContext(LoadedContext);
+	if (!storageKey) return null;
+	const count = snapshot?.c?.[storageKey];
+	return typeof count === "number" ? count : null;
+}
+
+export function useInitialDistributionSnapshot(
+	storageKey?: string,
+): Record<string, Distribution> | null {
+	const snapshot = useContext(LoadedContext);
+	if (!storageKey) return null;
+	const wd = snapshot?.wd?.[storageKey];
+	if (!wd || Object.keys(wd).length === 0) return null;
+	return wd;
 }
 
 export function useInitialHeightDistributionSnapshot(
 	storageKey?: string,
 ): Record<string, Distribution> | null {
-	const snapshot = useContext(PersistedSnapshotContext);
+	const snapshot = useContext(LoadedContext);
 	if (!storageKey) return null;
-	const wd = snapshot.hd?.[storageKey];
-	if (!wd || Object.keys(wd).length === 0) return null;
-	return wd;
+	const hd = snapshot?.hd?.[storageKey];
+	if (!hd || Object.keys(hd).length === 0) return null;
+	return hd;
 }
 
-export function useInitialCountSnapshot(storageKey?: string): number | null {
-	const snapshot = useContext(PersistedSnapshotContext);
-	if (!storageKey) return null;
-	const count = snapshot.c?.[storageKey];
-	return typeof count === "number" ? count : null;
-}
+export type { PersistedSkeletonSnapshot, SkeletonRegistry } from "../types";

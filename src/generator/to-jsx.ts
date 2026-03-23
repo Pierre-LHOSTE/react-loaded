@@ -41,6 +41,38 @@ function toCssStringLiteral(value: string): string {
 	return `"${escaped}"`;
 }
 
+/**
+ * HTML elements that are `display: inline` by default.
+ * These need `display: inline-block` in skeleton mode so that
+ * `min-width` (from --loaded-text-width) is respected.
+ */
+const INLINE_TAGS = new Set([
+	"a",
+	"abbr",
+	"b",
+	"cite",
+	"code",
+	"del",
+	"dfn",
+	"em",
+	"i",
+	"ins",
+	"kbd",
+	"label",
+	"mark",
+	"q",
+	"s",
+	"samp",
+	"small",
+	"span",
+	"strong",
+	"sub",
+	"sup",
+	"time",
+	"u",
+	"var",
+]);
+
 type Counter = { value: number };
 
 function nodeToJsx(
@@ -85,6 +117,15 @@ function nodeToJsx(
 		style["--loaded-text-height"] = `var(--sk-h-${textKey}, auto)`;
 		if (node.textContent?.length) {
 			style["--loaded-text-content"] = toCssStringLiteral(node.textContent);
+		}
+		// Inline elements ignore min-width/width — force inline-block so
+		// --loaded-text-width actually controls the element width.
+		// Set explicit width so the • text (which may be wider or narrower
+		// than the original) doesn't determine the element's intrinsic size.
+		// No overflow:hidden needed — text is already color:transparent.
+		if (INLINE_TAGS.has(tag)) {
+			style.display = "inline-block";
+			style.width = `var(--loaded-text-width, auto)`;
 		}
 	}
 

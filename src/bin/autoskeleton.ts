@@ -1,4 +1,4 @@
-import { main } from "../cli";
+import { main } from "../cli/main";
 
 main().catch((error) => {
 	console.error(

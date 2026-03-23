@@ -1,5 +1,5 @@
-import { serializeClientPersistedSnapshot } from "../client/persistedSnapshot";
-import type { PersistedSnapshotCompactOptions } from "../server/persistedSnapshot";
+import { serializeClientPersistedSnapshot } from "../snapshot/clientSnapshot";
+import type { PersistedSnapshotCompactOptions } from "../snapshot/compactPersistedSnapshot";
 import {
 	COOKIE_SIZE_WARNING_THRESHOLD,
 	DEFAULT_COOKIE_COMPACT_OPTIONS,
