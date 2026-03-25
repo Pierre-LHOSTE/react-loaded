@@ -46,6 +46,26 @@ function toCssStringLiteral(value: string): string {
  * These need `display: inline-block` in skeleton mode so that
  * `min-width` (from --loaded-text-width) is respected.
  */
+/**
+ * HTML void elements that cannot have children or a closing tag.
+ */
+const VOID_TAGS = new Set([
+	"area",
+	"base",
+	"br",
+	"col",
+	"embed",
+	"hr",
+	"img",
+	"input",
+	"link",
+	"meta",
+	"param",
+	"source",
+	"track",
+	"wbr",
+]);
+
 const INLINE_TAGS = new Set([
 	"a",
 	"abbr",
@@ -198,6 +218,9 @@ function nodeToJsx(
 	// Interactive nodes: root with children renders conditionally (ghost shows children,
 	// filled shows placeholder). Non-root interactive always shows a placeholder.
 	if (node.nodeType === "interactive") {
+		if (VOID_TAGS.has(tag)) {
+			return `${pad}<${tag}${attrString} />`;
+		}
 		if (isRoot && node.children.length > 0) {
 			const childrenJsx = node.children
 				.map((child) => nodeToJsx(child, indent + 2, false, textCounter))

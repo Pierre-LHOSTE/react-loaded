@@ -143,6 +143,26 @@ describe("generateComponent", () => {
 		expect(output).toContain('>{"\\u00A0"}</button>');
 	});
 
+	it("renders void interactive nodes as self-closing", () => {
+		const tree: CapturedNode = {
+			tag: "input",
+			className: "ant-segmented-item-input",
+			style: { width: "0px", height: "0px" },
+			attributes: {},
+			children: [],
+			nodeType: "interactive",
+			rect: { width: 0, height: 0 },
+		};
+
+		const output = generateComponent("segmented-input", tree);
+
+		expect(output).toContain("loaded-interactive");
+		expect(output).toContain("<input");
+		expect(output).toContain("/>");
+		expect(output).not.toContain("</input>");
+		expect(output).not.toContain("\\u00A0");
+	});
+
 	it("indents nested children correctly", () => {
 		const tree: CapturedNode = {
 			tag: "div",

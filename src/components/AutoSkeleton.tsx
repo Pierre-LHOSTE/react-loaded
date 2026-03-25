@@ -34,6 +34,8 @@ export interface AutoSkeletonProps {
 	variant?: "filled" | "ghost";
 	className?: string;
 	children?: ReactNode;
+	/** When true, prevents automatic re-capture and file updates for this skeleton. */
+	frozen?: boolean;
 	/** Pre-computed widths to apply (used internally by AutoSkeletonList). */
 	_textWidths?: Record<string, number>;
 	/** Pre-computed heights to apply (used internally by AutoSkeletonList). */
@@ -160,6 +162,7 @@ export const AutoSkeleton = forwardRef<HTMLElement, AutoSkeletonAllProps>(
 			variant = "filled",
 			className,
 			children = null,
+			frozen = false,
 			_textWidths,
 			_textHeights,
 			...rest
@@ -262,6 +265,7 @@ export const AutoSkeleton = forwardRef<HTMLElement, AutoSkeletonAllProps>(
 		// --- Dev capture effect ---
 		useEffect(() => {
 			if (!isDev || !id) return;
+			if (frozen) return;
 			if (loading && !hasGeneratedSkeleton) return;
 
 			const captureTarget = attachedRef.current;
@@ -277,7 +281,7 @@ export const AutoSkeleton = forwardRef<HTMLElement, AutoSkeletonAllProps>(
 			}, 100);
 
 			return () => clearTimeout(timer);
-		}, [id, loading, shouldRenderWrapper, hasGeneratedSkeleton]);
+		}, [id, loading, shouldRenderWrapper, hasGeneratedSkeleton, frozen]);
 
 		// --- Imperative style update on skeleton root ---
 		useIsomorphicLayoutEffect(() => {
@@ -334,7 +338,7 @@ export const AutoSkeleton = forwardRef<HTMLElement, AutoSkeletonAllProps>(
 				</SkeletonContext.Provider>
 			);
 
-			if (!isDev) return skeleton;
+			if (!isDev || frozen) return skeleton;
 
 			// Dev: skeleton + children off-screen pour détecter les changements et re-capturer
 			captureHasWrapperRef.current = true;

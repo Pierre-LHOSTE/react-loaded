@@ -10,6 +10,7 @@ vi.mock("./AutoSkeleton", () => ({
 		loading,
 		animate = true,
 		variant = "filled",
+		frozen,
 		_textWidths,
 		_textHeights,
 		children,
@@ -18,6 +19,7 @@ vi.mock("./AutoSkeleton", () => ({
 		loading: boolean;
 		animate?: boolean;
 		variant?: "filled" | "ghost";
+		frozen?: boolean;
 		_textWidths?: Record<string, number>;
 		_textHeights?: Record<string, number>;
 		children: ReactNode;
@@ -28,6 +30,7 @@ vi.mock("./AutoSkeleton", () => ({
 			data-loading={String(loading)}
 			data-animate={String(animate)}
 			data-variant={variant}
+			data-frozen={frozen !== undefined ? String(frozen) : undefined}
 			data-text-widths={_textWidths ? JSON.stringify(_textWidths) : undefined}
 			data-text-heights={
 				_textHeights ? JSON.stringify(_textHeights) : undefined
@@ -504,6 +507,26 @@ describe("AutoSkeletonList", () => {
 			const parsed = JSON.parse(widths as string);
 			expect(parsed).toHaveProperty("t0");
 			expect(typeof parsed.t0).toBe("number");
+		}
+	});
+
+	it("propagates frozen prop to AutoSkeleton children", () => {
+		render(
+			<AutoSkeletonList
+				id="frozen-item"
+				loading={true}
+				items={undefined}
+				renderItem={renderItem}
+				renderSkeleton={renderSkeleton}
+				defaultCount={2}
+				frozen={true}
+			/>,
+		);
+
+		const skeletons = screen.getAllByTestId("auto-skeleton");
+		expect(skeletons).toHaveLength(2);
+		for (const s of skeletons) {
+			expect(s.dataset.frozen).toBe("true");
 		}
 	});
 });

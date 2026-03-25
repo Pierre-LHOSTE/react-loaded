@@ -31,6 +31,7 @@ export interface AutoSkeletonListProps<T> {
 	maxCount?: number;
 	animate?: boolean;
 	variant?: "filled" | "ghost";
+	frozen?: boolean;
 	keyExtractor?: (item: T, index: number) => string | number;
 }
 
@@ -86,6 +87,7 @@ export function AutoSkeletonList<T>({
 	maxCount,
 	animate,
 	variant,
+	frozen,
 	keyExtractor = (_, index) => index,
 }: AutoSkeletonListProps<T>) {
 	const initialCount = useInitialCountSnapshot(storageKey);
@@ -177,6 +179,7 @@ export function AutoSkeletonList<T>({
 						loading={true}
 						animate={animate}
 						variant={variant}
+						frozen={frozen}
 						_textWidths={generatedWidths?.[index]}
 						_textHeights={generatedHeights?.[index]}
 					>

@@ -407,6 +407,38 @@ describe("AutoSkeleton (dev capture)", () => {
 		await new Promise((r) => setTimeout(r, 150));
 		expect(captureElement).not.toHaveBeenCalled();
 	});
+
+	it("does not call captureElement when frozen is true", async () => {
+		const { captureElement } = await import("../capture/client");
+		vi.mocked(captureElement).mockClear();
+
+		render(
+			<AutoSkeleton id="frozen-card" loading={false} frozen>
+				<div>Hello</div>
+			</AutoSkeleton>,
+		);
+
+		await new Promise((r) => setTimeout(r, 150));
+		expect(captureElement).not.toHaveBeenCalled();
+	});
+
+	it("calls captureElement when frozen is false", async () => {
+		const { captureElement } = await import("../capture/client");
+		vi.mocked(captureElement).mockClear();
+
+		render(
+			<AutoSkeleton id="unfrozen-card" loading={false} frozen={false}>
+				<div>Hello</div>
+			</AutoSkeleton>,
+		);
+
+		await waitFor(() => {
+			expect(captureElement).toHaveBeenCalledWith(
+				"unfrozen-card",
+				expect.any(Element),
+			);
+		});
+	});
 });
 
 describe("AutoSkeleton (animate, variant, className)", () => {
